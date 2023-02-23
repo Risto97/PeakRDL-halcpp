@@ -51,7 +51,7 @@ class HalExporter():
                 }
         out = self.gen_file(context)
 
-        out_file = os.path.join(outdir, nodes[0].inst_name + ".h")
+        out_file = os.path.join(outdir, nodes[0].inst_name + "_hal" + ".h")
         with open(out_file, 'w') as f:
             f.write(out)
 

@@ -22,7 +22,7 @@ setuptools.setup(
     packages=[
         'peakrdl_halcpp',
     ],
-    package_data={'peakrdl_halcpp' : ['templates']},
+    package_data={'peakrdl_halcpp' : ['templates/*']},
     include_package_data=True,
     install_requires=[
         "systemrdl-compiler>=1.13.0",

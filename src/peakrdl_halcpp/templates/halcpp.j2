@@ -66,7 +66,7 @@ public:
 {% endfor %}
 #}
 
-class {{ top.inst_name.upper() }}  : public {{ top.inst_name.upper() }}_CRTP<{{ top.inst_name.upper() }}> {
+class {{ top.inst_name.upper() }}_HAL  : public {{ top.inst_name.upper() }}_CRTP<{{ top.inst_name.upper() }}_HAL> {
     public:
     uint32_t ARCHI_READ(uint32_t base, uint32_t offset){ 
         return *(volatile uint32_t*)(base + offset);
@@ -76,7 +76,7 @@ class {{ top.inst_name.upper() }}  : public {{ top.inst_name.upper() }}_CRTP<{{ 
 
     }
 
-    {{ top.inst_name.upper() }} (uint32_t base) : {{ top.inst_name.upper() }}_CRTP(base) {
+    {{ top.inst_name.upper() }}_HAL (uint32_t base) : {{ top.inst_name.upper() }}_CRTP(base) {
     }
 };
 

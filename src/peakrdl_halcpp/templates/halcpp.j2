@@ -38,7 +38,12 @@ public:
        {{ field.get_property('desc') }}
     */
     {% if field.is_sw_writable %}
+        {% if field.get_property('singlepulse') %}
+    inline void {{ reg.inst_name }}_{{ field.inst_name}}_set(uint32_t val){ impl().ARCHI_WRITE(_BASE_ADDR, {{ reg.address_offset }}, val << {{ field.low }}  );}
+        {% else %}
     inline void {{ reg.inst_name }}_{{ field.inst_name}}_set(uint32_t val){ impl().ARCHI_WRITE(_BASE_ADDR, {{ reg.address_offset }}, ({{ reg.inst_name }}_get() & {{bit_mask(field.low, field.high, width=32, inverted=True) }}) | val << {{ field.low }}  );}
+
+        {% endif %}
     {% endif %}
     {% if field.is_sw_readable %}
     inline uint32_t {{ reg.inst_name }}_{{ field.inst_name }}_get(){ return {{ reg.inst_name }}_get() & {{ bit_mask(field.low, field.high, width=32, inverted=False)}} >> {{ field.low }};}

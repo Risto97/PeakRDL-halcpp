@@ -18,8 +18,12 @@ public:
     FieldNode<{{ f.low }}, {{ f.high }}, {{ r|getClsTmplSpec }}> {{ f.inst_name }};
 {% endfor %}
 
-{{ r|getTypeName|upper }}() {} 
+    {{ r|getTypeName|upper }}() {} 
+
+    using RegNode{{ r|getClsTmplSpec(True) }}::operator=;
+
 };
+
 {% endfor %}
 
 {% for m in node|getMemNodes|filterUniqueTypes %}

@@ -2,9 +2,16 @@
 #define _HALCPP_BASE_H_
 
 #include <stdint.h>
+#include <type_traits>
 
 template <uint32_t START_BIT, uint32_t END_BIT, typename PARENT_TYPE>
 class FieldNode {
+private:
+    using dataType =
+        typename std::conditional<(END_BIT - START_BIT + 1) <= 8, uint8_t,
+                                  typename std::conditional<(END_BIT - START_BIT + 1) <= 16,
+                                                            uint16_t, uint32_t>::type>::type;
+
 public:
     FieldNode(){};
 
@@ -13,12 +20,28 @@ public:
         return (~0u) ^ (((1u << (END_BIT - START_BIT + 1)) - 1) << START_BIT);
     }
 
-    static inline void set(uint32_t val) {
+    static inline void set(dataType val) {
         PARENT_TYPE::set((PARENT_TYPE::get() & calc_mask()) | (val << START_BIT));
     }
 
-    static inline uint32_t get() { return ((PARENT_TYPE::get() & ~calc_mask()) >> START_BIT); }
+    static inline dataType get() {
+        return ((PARENT_TYPE::get() & ~calc_mask()) >> START_BIT); 
+    }
 
+    // Operators
+    template <typename T>
+    void operator=(const T val) {
+        static_assert(std::is_integral<T>::value, "T must be an integral type.");
+        set(val);
+    }
+    template <typename T>
+    inline operator const T() const {
+        static_assert(std::is_integral<T>::value, "T must be an integral type.");
+        static_assert(
+            sizeof(T) >= (float)(END_BIT - START_BIT + 1) / 8,
+            "T must be smaller than or equal to Field width, otherwise data will be lost");
+        return static_cast<T>(get());
+    }
     constexpr uint32_t get_abs_addr() { return PARENT_TYPE::get_abs_addr(); }
 };
 
@@ -29,6 +52,18 @@ public:
 
     static inline uint32_t get() { return PARENT_TYPE::get(BASE); }
     static inline void set(uint32_t val) { PARENT_TYPE::set(BASE, val); }
+
+    template<typename T>
+    inline void operator=(const T &val) {
+        static_assert(std::is_integral<T>::value, "T must be an integral type.");
+        set(val);
+    }
+
+    template <typename T>
+    inline operator const T() const {
+        static_assert(std::is_integral<T>::value, "T must be an integral type.");
+        return static_cast<T>(get());
+    }
 
     constexpr uint32_t get_abs_addr() { return PARENT_TYPE::get_abs_addr() + BASE; }
 };

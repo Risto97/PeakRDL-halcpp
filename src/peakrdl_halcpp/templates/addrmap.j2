@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "halcpp_base.h"
 {% for c in node|getAddrmapNodes %}
-#include "{{ c|getTypeName }}_hal.h"
+{{ c|getIncludeLine }}
 {% endfor %}
 
 namespace _{{ node|getTypeName }}_nm {
@@ -48,8 +48,8 @@ public:
 
 {% endif %}
 
-{% for c in node|getAddressableNodes %}
-    {% if c|isRegNode or c|isMemNode %}_{{ node|getTypeName }}_nm::{% endif %}{{ c|getTypeName|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode %} {{ c.size }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
+{% for c in node|getMemberNodes %}
+    {% if c|isRegNode or c|isMemNode %}_{{ node|getTypeName }}_nm::{% endif %}{{ c|getTypeName|findExtern|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode %} {{ c.size }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
 {% endfor %}
 
     {{ node.orig_type_name.upper() }}() {}

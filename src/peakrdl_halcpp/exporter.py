@@ -1,4 +1,3 @@
-from systemrdl import RDLWalker
 from systemrdl.node import  Node, RootNode
 from typing import List, Union
 import os
@@ -10,7 +9,12 @@ class HalExporter():
     def __init__(self):
         pass
 
-    def export(self, nodes: 'Union[Node, List[Node]]', outdir: str, traverse: bool=False, **kwargs: 'Dict[str, Any]') -> None:
+    def export(self,
+            nodes: 'Union[Node, List[Node]]',
+            outdir: str, 
+            traverse: bool=False,
+            ext : list=[],
+            **kwargs: 'Dict[str, Any]') -> None:
 
         # if not a list
         if not isinstance(nodes, list):
@@ -29,18 +33,17 @@ class HalExporter():
         except FileExistsError:
             pass
 
-        walker = RDLWalker(unroll=True)
-        listener = HalListener()
-        walker.walk(nodes[0], listener)
+        utils = HalUtils(ext, remove_buses=True)
 
+        addrmaps = utils.getAddrmapNodes(nodes[0], remove_root=False)
 
-        for node in listener.addrmaps:
+        for node in addrmaps:
             context = {
                     'node' : node,
-                    'addrmap_nodes' : listener.addrmaps
+                    'addrmap_nodes' : addrmaps
                     }
-            text = process_template(context, "addrmap.j2")
-            out_file = os.path.join(outdir, getTypeName(node) + "_hal" + ".h")
+            text = utils.process_template(context, "addrmap.j2")
+            out_file = os.path.join(outdir, utils.getTypeName(node) + "_hal" + ".h")
             with open(out_file, 'w') as f:
                 f.write(text)
 

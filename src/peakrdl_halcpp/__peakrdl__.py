@@ -13,12 +13,12 @@ class Exporter:
 
 
     def add_exporter_arguments(self, arg_group: 'argparse.ArgumentParser') -> None:
-        # arg_group.add_argument(
-        #     "--logo",
-        #     dest="logo",
-        #     default=None,
-        #     help="Logo to be insterted in the middle of the block"
-        # )
+
+        arg_group.add_argument(
+                "--ext",
+                nargs="*", 
+                help="list of addrmap modules that have implemented <name>_EXT class in <name>_ext.h header file, used for extending functionality"
+                )
 
         arg_group.add_argument(
             "--traverse",
@@ -36,5 +36,6 @@ class Exporter:
             top_node,
             options.output,
             options.traverse,
+            options.ext,
         )
 

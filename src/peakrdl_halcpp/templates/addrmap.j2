@@ -1,0 +1,56 @@
+#ifndef __{{ node|getTypeName|upper }}_H_
+#define __{{ node|getTypeName|upper }}_H_
+
+#include <stdint.h>
+#include "halcpp_base.h"
+{% for c in node|getAddrmapNodes %}
+#include "{{ c|getTypeName }}_hal.h"
+{% endfor %}
+
+namespace _{{ node|getTypeName }}_nm {
+{% for r in node|getRegNodes|filterUniqueTypes %}
+
+{{ r|getDocstring }}
+{{ r | getTemplateLine}}
+class {{ r|getTypeName|upper }} : public RegNode{{ r|getClsTmplSpec(True) }} {
+public:
+{% for f in r.children() %}
+    FieldNode<{{ f.low }}, {{ f.high }}, {{ r|getClsTmplSpec }}> {{ f.inst_name }};
+{% endfor %}
+
+{{ r|getTypeName|upper }}() {} 
+};
+{% endfor %}
+
+{% for m in node|getMemNodes|filterUniqueTypes %}
+{{ m|getTemplateLine }}
+class {{ m|getTypeName|upper }} : public MemNode{{ m|getClsTmplSpec(True) }} {
+
+};
+{% endfor %}
+}
+
+{{ node|getDocstring }}
+{% if  node.parent | isRootNode %}
+{{ node | getTemplateLine}}
+class {{ node|getTypeName|upper }} :  public TopNode<BASE> {
+public:
+
+
+{% else %}
+{{ node | getTemplateLine}}
+class {{ node.orig_type_name.upper() }} : public AddrmapNode<BASE, PARENT_TYPE> {
+public:
+
+{% endif %}
+
+{% for c in node|getAddressableNodes %}
+    {% if c|isRegNode or c|isMemNode %}_{{ node|getTypeName }}_nm::{% endif %}{{ c|getTypeName|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode %} {{ c.size }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
+{% endfor %}
+
+    {{ node.orig_type_name.upper() }}() {}
+
+};
+
+
+#endif

@@ -1,4 +1,4 @@
-from systemrdl.node import  Node, RootNode
+from systemrdl.node import  Node, RootNode, AddrmapNode
 from typing import List, Union
 import os
 import shutil
@@ -7,14 +7,33 @@ from .halutils import *
 
 class HalExporter():
     def __init__(self):
-        pass
+        self.cpp_dir = "templates"
+
+        self.base_headers = [
+                "halcpp_base.h",
+                "halcpp_utils.h",
+                "field_node.h",
+                "reg_node.h",
+                "addrmap_node.h",
+                "arch_io.h",
+                ]
+
+    def list_files(self, addrmaps : List[AddrmapNode], outdir : str, utils : HalUtils):
+        out_files = [os.path.join(outdir, utils.getTypeName(node) + ".h") for node in addrmaps]
+        out_files = [os.path.join(outdir, x) for x in self.base_headers] + out_files
+        print(*out_files) # Print files to stdout
+
+    def copy_base_headers(self, outdir):
+        abspaths = [os.path.join(os.path.dirname(__file__), self.cpp_dir, x) for x in self.base_headers]
+        [shutil.copy(x, outdir) for x in abspaths]
 
     def export(self,
             nodes: 'Union[Node, List[Node]]',
             outdir: str, 
-            traverse: bool=False,
+            list_files: bool=False,
             ext : list=[],
             **kwargs: 'Dict[str, Any]') -> None:
+
 
         # if not a list
         if not isinstance(nodes, list):
@@ -37,26 +56,18 @@ class HalExporter():
 
         addrmaps = utils.getAddrmapNodes(nodes[0], remove_root=False)
 
-        for node in addrmaps:
-            context = {
-                    'node' : node,
-                    'addrmap_nodes' : addrmaps
-                    }
-            text = utils.process_template(context, "addrmap.j2")
-            out_file = os.path.join(outdir, utils.getTypeName(node) + ".h")
-            with open(out_file, 'w') as f:
-                f.write(text)
+        if list_files:
+            self.list_files(addrmaps, outdir, utils)
+        else:
+            for node in addrmaps:
+                context = {
+                        'node' : node,
+                        'addrmap_nodes' : addrmaps
+                        }
+                text = utils.process_template(context, "addrmap.j2")
+                out_file = os.path.join(outdir, utils.getTypeName(node) + ".h")
+                with open(out_file, 'w') as f:
+                    f.write(text)
 
-        halcpp_base = os.path.join(os.path.dirname(__file__), "templates/halcpp_base.h")
-        halcpp_utils = os.path.join(os.path.dirname(__file__), "templates/halcpp_utils.h")
-        field_node_h = os.path.join(os.path.dirname(__file__), "templates/field_node.h")
-        addrmap_node_h = os.path.join(os.path.dirname(__file__), "templates/addrmap_node.h")
-        arch_io_h = os.path.join(os.path.dirname(__file__), "templates/arch_io.h")
-        reg_node_h = os.path.join(os.path.dirname(__file__), "templates/reg_node.h")
-        shutil.copy(halcpp_base, outdir)
-        shutil.copy(halcpp_utils, outdir)
-        shutil.copy(field_node_h, outdir)
-        shutil.copy(addrmap_node_h, outdir)
-        shutil.copy(arch_io_h, outdir)
-        shutil.copy(reg_node_h, outdir)
+            self.copy_base_headers(outdir)
 

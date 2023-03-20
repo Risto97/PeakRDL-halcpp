@@ -21,11 +21,11 @@ class Exporter:
                 )
 
         arg_group.add_argument(
-            "--traverse",
-            dest="traverse",
+            "--list-files",
+            dest="list_files",
             default=False,
             action="store_true",
-            help="Traverse and generate the whole hierarchy if True"
+            help="Dont generate files, but instead just list the files that will be generated, and external files that need to be included"
         )
 
 
@@ -35,7 +35,7 @@ class Exporter:
         hal.export(
             top_node,
             options.output,
-            options.traverse,
+            options.list_files,
             options.ext,
         )
 

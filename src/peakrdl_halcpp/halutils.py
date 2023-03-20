@@ -189,7 +189,7 @@ class HalUtils():
             str = str + self.getTypeName(node).upper()
 
         if self.isRootNode(node.parent):
-            return str + "<BASE, PARENT_SIZE>"
+            return str + "<BASE, PARENT_TYPE>"
         elif self.isMemNode(node):
             return str + "<BASE, SIZE, PARENT_TYPE>"
         elif self.isRegNode(node):

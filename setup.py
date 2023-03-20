@@ -27,6 +27,7 @@ setuptools.setup(
     install_requires=[
         "systemrdl-compiler>=1.13.0",
         "Jinja2>=3.0.0",
+        "peakrdl==0.7.0"
     ],
     entry_points = {
         "peakrdl.exporters": [

@@ -1,5 +1,8 @@
 from typing import TYPE_CHECKING
 
+from peakrdl.plugins.exporter import ExporterSubcommandPlugin #pylint: disable=import-error
+from peakrdl.config import schema #pylint: disable=import-error
+
 from .exporter import  HalExporter
 
 if TYPE_CHECKING:
@@ -7,7 +10,7 @@ if TYPE_CHECKING:
     from systemrdl.node import AddrmapNode
 
 
-class Exporter:
+class Exporter(ExporterSubcommandPlugin):
     short_desc = "Generate CPP Hardware Abstraction Layer libraries"
     long_desc = "Generate CPP Hardware Abstraction Layer libraries"
 

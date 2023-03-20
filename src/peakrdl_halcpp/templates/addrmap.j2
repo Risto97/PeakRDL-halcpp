@@ -12,15 +12,17 @@ namespace _{{ node|getTypeName }}_nm {
 
 {{ r|getDocstring }}
 {{ r | getTemplateLine}}
-class {{ r|getTypeName|upper }} : public RegNode{{ r|getClsTmplSpec(True) }} {
+class {{ r|getTypeName|upper }} : public halcpp::{{ r|getRegType }}{{ r|getClsTmplSpec(True) }} {
 public:
 {% for f in r.children() %}
-    FieldNode<{{ f.low }}, {{ f.high }}, {{ r|getClsTmplSpec }}> {{ f.inst_name }};
+    halcpp::{{ f|getFieldType }}<{{ f.low }}, {{ f.high }}, {{ r|getClsTmplSpec }} > {{ f.inst_name }};
 {% endfor %}
 
     {{ r|getTypeName|upper }}() {} 
 
-    using RegNode{{ r|getClsTmplSpec(True) }}::operator=;
+{% if r.has_sw_writable %}
+    using halcpp::{{ r|getRegType }}{{ r|getClsTmplSpec(True) }}::operator=;
+{% endif %}
 
 };
 
@@ -35,24 +37,15 @@ class {{ m|getTypeName|upper }} : public MemNode{{ m|getClsTmplSpec(True) }} {
 }
 
 {{ node|getDocstring }}
-{% if  node.parent | isRootNode %}
 {{ node | getTemplateLine}}
-class {{ node|getTypeName|upper }} :  public TopNode<BASE> {
+class {{ node|getTypeName|upper }} : public AddrmapNode<BASE, PARENT_TYPE> {
 public:
-
-
-{% else %}
-{{ node | getTemplateLine}}
-class {{ node.orig_type_name.upper() }} : public AddrmapNode<BASE, PARENT_TYPE> {
-public:
-
-{% endif %}
 
 {% for c in node|getMemberNodes %}
-    {% if c|isRegNode or c|isMemNode %}_{{ node|getTypeName }}_nm::{% endif %}{{ c|getTypeName|findExtern|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode %} {{ c.size }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
+    {% if c|isRegNode or c|isMemNode %}_{{ node|getTypeName }}_nm::{% endif %}{{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode or c|isRegNode %} {{ c|getSizeOrWidth }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
 {% endfor %}
 
-    {{ node.orig_type_name.upper() }}() {}
+    {{ node|getTypeName|upper }}() {}
 
 };
 

@@ -1,5 +1,5 @@
 from systemrdl import RDLWalker, RDLListener
-from systemrdl.node import Node, MemNode, RootNode, AddressableNode, RegNode, FieldNode
+from systemrdl.node import Node, MemNode, RootNode, AddressableNode, RegNode, FieldNode, AddrmapNode
 from typing import List, Union
 import jinja2
 import os
@@ -39,12 +39,12 @@ class HalUtils():
 
     def getIncludeLine(self, node : Node):
         out = '#include"'
-        type_name = self.getTypeName(node)
+        type_name = self.getTypeName(node, check_extern=True)
         has_extern = self.hasExtern(type_name)
         if has_extern:
             return out + type_name + '_ext.h"'
         else:
-            return out + type_name + '_hal.h"'
+            return out + type_name + '.h"'
 
     def getAddressableNodes(self, node : Node):
         nodes = []
@@ -52,6 +52,12 @@ class HalUtils():
             if isinstance(c, AddressableNode):
                 nodes.append(c)
         return nodes
+
+    def getSizeOrWidth(self, node : Node):
+        if self.isMemNode(node):
+            return node.size
+        elif self.isRegNode(node):
+            return node.size * 8
 
     def hasExtern(self, name : str) -> bool:
         for ext in self.ext_classes:
@@ -127,17 +133,53 @@ class HalUtils():
 
         return unique_list
 
-    def getTypeName(self, node : Node):
+    def getOrigTypeName(self, node : Node) -> str:
         if node.orig_type_name is not None:
             return node.orig_type_name
         else:
             return node.inst_name
 
+
+    def getTypeName(self, node : Node, check_extern=False):
+        name = self.getOrigTypeName(node)
+        if check_extern:
+            if self.hasExtern(name):
+                return name
+
+        if isinstance(node, AddrmapNode):
+            return name + "_hal"
+
+        return name
+
+    def getFieldType(self, field : FieldNode):
+        out = ""
+        if field.is_sw_readable and field.is_sw_writable:
+            return "FieldRW"
+        elif field.is_sw_writable and not field.is_sw_readable:
+            return "FieldWO"
+        elif field.is_sw_readable:
+            return "FieldRO"
+
+        return out
+
+    def getRegType(self, field : RegNode):
+        out = ""
+        if field.has_sw_readable and field.has_sw_writable:
+            return "RegRW"
+        elif field.has_sw_writable and not field.has_sw_readable:
+            return "RegWO"
+        elif field.has_sw_readable:
+            return "RegRO"
+
+        return out
+
     def getTemplateLine(self, node : Node):
         if self.isRootNode(node.parent):
-            return "template <uint32_t BASE>"
+            return "template <uint32_t BASE, typename PARENT_TYPE=void>"
         elif self.isMemNode(node):
             return f"template<uint32_t BASE, uint32_t SIZE, typename PARENT_TYPE>"
+        elif self.isRegNode(node):
+            return f"template<uint32_t BASE, uint32_t WIDTH, typename PARENT_TYPE>"
         else:
             return "template <uint32_t BASE, typename PARENT_TYPE>"
 
@@ -147,9 +189,11 @@ class HalUtils():
             str = str + self.getTypeName(node).upper()
 
         if self.isRootNode(node.parent):
-            return str + "<BASE>"
+            return str + "<BASE, PARENT_SIZE>"
         elif self.isMemNode(node):
             return str + "<BASE, SIZE, PARENT_TYPE>"
+        elif self.isRegNode(node):
+            return str + "<BASE, WIDTH, PARENT_TYPE>"
         else:
             return str + "<BASE, PARENT_TYPE>"
 
@@ -201,8 +245,12 @@ class HalUtils():
             'getRegNodes' : self.getRegNodes,
             'getAddrmapNodes' : self.getAddrmapNodes,
             'getMemNodes' : self.getMemNodes,
+            'getFieldType' : self.getFieldType,
+            'getRegType' : self.getRegType,
+            'getSizeOrWidth' : self.getSizeOrWidth,
             # 'getFieldNodes' : self.getFieldNodes,
             'getTypeName' : self.getTypeName,
+            # 'getHalClassName' : self.getHalClassName,
             'getIncludeLine' : self.getIncludeLine,
             'findExtern' : self.findExtern,
             'getMemberNodes' : self.getMemberNodes,

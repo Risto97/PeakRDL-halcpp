@@ -43,10 +43,20 @@ class HalExporter():
                     'addrmap_nodes' : addrmaps
                     }
             text = utils.process_template(context, "addrmap.j2")
-            out_file = os.path.join(outdir, utils.getTypeName(node) + "_hal" + ".h")
+            out_file = os.path.join(outdir, utils.getTypeName(node) + ".h")
             with open(out_file, 'w') as f:
                 f.write(text)
 
         halcpp_base = os.path.join(os.path.dirname(__file__), "templates/halcpp_base.h")
+        halcpp_utils = os.path.join(os.path.dirname(__file__), "templates/halcpp_utils.h")
+        field_node_h = os.path.join(os.path.dirname(__file__), "templates/field_node.h")
+        addrmap_node_h = os.path.join(os.path.dirname(__file__), "templates/addrmap_node.h")
+        arch_io_h = os.path.join(os.path.dirname(__file__), "templates/arch_io.h")
+        reg_node_h = os.path.join(os.path.dirname(__file__), "templates/reg_node.h")
         shutil.copy(halcpp_base, outdir)
+        shutil.copy(halcpp_utils, outdir)
+        shutil.copy(field_node_h, outdir)
+        shutil.copy(addrmap_node_h, outdir)
+        shutil.copy(arch_io_h, outdir)
+        shutil.copy(reg_node_h, outdir)
 

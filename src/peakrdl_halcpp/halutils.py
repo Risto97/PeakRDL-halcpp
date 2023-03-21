@@ -3,6 +3,7 @@ from systemrdl.node import Node, MemNode, RootNode, AddressableNode, RegNode, Fi
 from typing import List, Union
 import jinja2
 import os
+import math
 import copy
 
 
@@ -24,6 +25,8 @@ class HalUtils():
         self.ext_classes = ext_classes 
 
         self.remove_buses = remove_buses
+
+        self.enums = {}
 
     def isRootNode(self, node : Node):
         return isinstance(node, RootNode)
@@ -57,7 +60,10 @@ class HalUtils():
         if self.isMemNode(node):
             return node.size
         elif self.isRegNode(node):
-            return node.size * 8
+            width = 0
+            for c in node.children():
+                width = width + c.width
+            return width
 
     def hasExtern(self, name : str) -> bool:
         for ext in self.ext_classes:
@@ -151,6 +157,40 @@ class HalUtils():
 
         return name
 
+
+    def hasEnum(self, node : FieldNode):
+        encode = node.get_property('encode')
+        if encode is not None:
+            return True
+
+    def getEnum(self, node : FieldNode):
+        encode = node.get_property('encode')
+        if encode is not None:
+            name = encode.__name__;
+            if name in self.enums:
+                return False, None, None, None, None, None
+            enum_strings = []
+            enum_values = []
+            enum_desc = []
+            for k, v in encode.members.items():
+                enum_strings.append(encode.members[k].name)
+                enum_values.append(encode.members[k].value)
+                enum_desc.append(encode.members[k].rdl_desc)
+
+            const_width = math.ceil(math.log2(max(enum_values)))
+
+            self.enums[name] = [enum_strings, enum_values, enum_desc, const_width]
+            return True, name, enum_strings, enum_values, enum_desc, const_width
+        
+        return False, None, None, None, None, None
+
+    
+    def getEnumName(self, node : FieldNode):
+        encode = node.get_property('encode')
+        if encode is not None:
+            return encode.__name__
+
+
     def getFieldType(self, field : FieldNode):
         out = ""
         if field.is_sw_readable and field.is_sw_writable:
@@ -237,6 +277,7 @@ class HalUtils():
             lstrip_blocks=True)
 
         env.filters.update({
+            'zip' : zip,
             'isRootNode' : self.isRootNode,
             'isMemNode' : self.isMemNode,
             'isRegNode' : self.isRegNode,
@@ -250,6 +291,9 @@ class HalUtils():
             'getSizeOrWidth' : self.getSizeOrWidth,
             # 'getFieldNodes' : self.getFieldNodes,
             'getTypeName' : self.getTypeName,
+            'hasEnum' : self.hasEnum,
+            'getEnum' : self.getEnum,
+            'getOrigTypeName' : self.getOrigTypeName,
             # 'getHalClassName' : self.getHalClassName,
             'getIncludeLine' : self.getIncludeLine,
             'findExtern' : self.findExtern,

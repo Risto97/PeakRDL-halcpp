@@ -7,8 +7,20 @@
 {{ c|getIncludeLine }}
 {% endfor %}
 
-namespace _{{ node|getTypeName }}_nm {
+namespace {{ node|getOrigTypeName }}_nm {
 {% for r in node|getRegNodes|filterUniqueTypes %}
+
+{% for f in r.children() %}
+{% set has_enum, enum_name, enum_strings, enum_values, enum_desc, const_width = f|getEnum %}
+{% if has_enum %}
+class {{ enum_name }} {
+public:
+{% for  s, v, d in enum_strings|zip(enum_values, enum_desc) %}
+    static const halcpp::Const<{{ const_width }}, {{ v }}> {{ s }}; // {{ d }}
+{% endfor %}
+};
+    {% endif %}
+{% endfor %}
 
 {{ r|getDocstring }}
 {{ r | getTemplateLine}}
@@ -42,7 +54,7 @@ class {{ node|getTypeName|upper }} : public AddrmapNode<BASE, PARENT_TYPE> {
 public:
 
 {% for c in node|getMemberNodes %}
-    {% if c|isRegNode or c|isMemNode %}_{{ node|getTypeName }}_nm::{% endif %}{{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode or c|isRegNode %} {{ c|getSizeOrWidth }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
+    {% if c|isRegNode or c|isMemNode %}{{ node|getOrigTypeName }}_nm::{% endif %}{{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode or c|isRegNode %} {{ c|getSizeOrWidth }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
 {% endfor %}
 
     {{ node|getTypeName|upper }}() {}

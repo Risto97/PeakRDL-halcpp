@@ -34,6 +34,11 @@ public:
         parent::set(BASE_TYPE::rel_base, val);
     }
 
+    template<uint32_t CONST_WIDTH, uint32_t CONST_VAL>
+    static inline void set(const Const<CONST_WIDTH, CONST_VAL> &a){
+        static_assert(BASE_TYPE::width == CONST_WIDTH, "You need to provide all the bits for concatenation.");
+        parent::set(BASE_TYPE::rel_base, a.val);
+    }
     // Dont bother with operator= equal as its going to be overriden by inherited class anyways
 
     RegWrMixin() {}
@@ -66,22 +71,21 @@ public:
 template <typename... RegMixins>
 class RegNode : public RegMixins... {
 private:
-    template <typename T>
-    void call_set([[maybe_unused]] typename T::dataType val) {         // Find a way to ignore warning -Wunused-but-set-parameter
+    template <typename DT, typename T>
+    void call_set([[maybe_unused]] const DT &val) const {         // Find a way to ignore warning -Wunused-but-set-parameter
         if constexpr (node_has_set_v<T>) T::set(val);
     }
-    template <typename T, typename T1, typename... Ts>
-    void call_set(typename T::dataType val) {
-        call_set<T>(val);
-        call_set<T1, Ts...>(val);
+    template <typename DT, typename T, typename T1, typename... Ts>
+    void call_set(const DT val) const {
+        call_set<DT, T>(val);
+        call_set<DT, T1, Ts...>(val);
     }
 
 public:
     template <typename Tp, typename T = void>
     typename std::enable_if<std::disjunction_v<node_has_set<RegMixins>...>, T>::type
     operator=(Tp val) {
-        static_assert(std::is_integral<Tp>::value, "T must be an integral type.");
-        call_set<RegMixins...>(val);
+        call_set<Tp, RegMixins...>(val);
     }
     RegNode() {}
 };

@@ -15,7 +15,7 @@ public:
     static inline void set(const uint32_t addr, uint32_t val) {
         PARENT_TYPE::set(addr + BASE, val);
     }
-    constexpr uint32_t get_abs_addr() { return PARENT_TYPE::get_abs_addr() + BASE; }
+    static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr() + BASE; }
 };
 
 /* Specialization for the Top hierarchy addrmap
@@ -27,7 +27,7 @@ class AddrmapNode <BASE, void> : ArchIoNode {
 public:
     AddrmapNode() {}
 
-    constexpr uint32_t get_abs_addr() { return BASE; }
+    static constexpr uint32_t get_abs_addr() { return BASE; }
 
     static inline void set(uint32_t addr, uint32_t val) {
         ArchIoNode::write32(addr + BASE, val);

@@ -12,7 +12,7 @@ class RegBase {
 public:
     RegBase() {}
 
-    constexpr uint32_t get_abs_addr() { return PARENT_TYPE::get_abs_addr() + BASE; }
+    static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr() + BASE; }
 
 protected:
     static constexpr uint32_t width = WIDTH;

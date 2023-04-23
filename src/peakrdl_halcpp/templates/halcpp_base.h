@@ -18,7 +18,7 @@ public:
 
     inline uint32_t get(const uint32_t addr) { return PARENT_TYPE::get(addr + BASE); }
     inline void set(const uint32_t addr, uint32_t val) { PARENT_TYPE::set(addr + BASE, val); }
-    constexpr uint32_t get_abs_addr() { return PARENT_TYPE::get_abs_addr() + BASE; }
+    static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr() + BASE; }
     constexpr uint32_t get_size() { return SIZE; }
 };
 

@@ -54,7 +54,7 @@ class {{ node|getTypeName|upper }} : public AddrmapNode<BASE, PARENT_TYPE> {
 public:
 
 {% for c in node|getMemberNodes %}
-    {% if c|isRegNode or c|isMemNode %}{{ node|getOrigTypeName }}_nm::{% endif %}{{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode or c|isRegNode %} {{ c|getSizeOrWidth }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
+    static {% if c|isRegNode or c|isMemNode %}{{ node|getOrigTypeName }}_nm::{% endif %}{{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode or c|isRegNode %} {{ c|getSizeOrWidth }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
 {% endfor %}
 
     {{ node|getTypeName|upper }}() {}

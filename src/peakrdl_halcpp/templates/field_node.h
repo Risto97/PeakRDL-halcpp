@@ -12,7 +12,7 @@ class FieldBase {
 public:
     FieldBase() {}
 
-    constexpr uint32_t get_abs_addr() { return PARENT_TYPE::get_abs_addr(); }
+    static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr();}
 
 protected:
     using parent_type = PARENT_TYPE;

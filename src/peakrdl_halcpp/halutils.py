@@ -261,7 +261,7 @@ class HalUtils():
 
         if self.remove_buses is True:
             for n in addrmaps:
-                if self.isBus(n):
+                if self.isBus(n) and not isinstance(n.parent, RootNode):
                     addrmaps.remove(n)
 
         if addrmaps is None:

@@ -10,7 +10,7 @@
 namespace {{ node|getOrigTypeName }}_nm {
 {% for r in node|getRegNodes|filterUniqueTypes %}
 
-{% for f in r.children() %}
+{% for f in r|getFieldNodes %}
 {% set has_enum, enum_name, enum_strings, enum_values, enum_desc, const_width = f|getEnum %}
 {% if has_enum %}
 class {{ enum_name }} {
@@ -26,7 +26,7 @@ public:
 {{ r | getTemplateLine}}
 class {{ r|getTypeName|upper }} : public halcpp::{{ r|getRegType }}{{ r|getClsTmplSpec(True) }} {
 public:
-{% for f in r.children() %}
+{% for f in r|getFieldNodes %}
     halcpp::{{ f|getFieldType }}<{{ f.low }}, {{ f.high }}, {{ r|getClsTmplSpec }} > {{ f.inst_name }};
 {% endfor %}
 

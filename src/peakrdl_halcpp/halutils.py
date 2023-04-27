@@ -108,6 +108,9 @@ class HalUtils():
                 nodes.append(c)
         return nodes
 
+    def getFieldNodes(self, node : Node):
+        return [field for field in node.children() if isinstance(field, FieldNode)]
+
     def isUnique(self, node: Node, unique_list : List[Node]):
         for n in unique_list:
             if self.getTypeName(n) == self.getTypeName(node):
@@ -289,7 +292,7 @@ class HalUtils():
             'getFieldType' : self.getFieldType,
             'getRegType' : self.getRegType,
             'getSizeOrWidth' : self.getSizeOrWidth,
-            # 'getFieldNodes' : self.getFieldNodes,
+            'getFieldNodes' : self.getFieldNodes,
             'getTypeName' : self.getTypeName,
             'hasEnum' : self.hasEnum,
             'getEnum' : self.getEnum,

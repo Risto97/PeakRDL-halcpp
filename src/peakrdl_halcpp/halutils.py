@@ -180,7 +180,7 @@ class HalUtils():
                 enum_values.append(encode.members[k].value)
                 enum_desc.append(encode.members[k].rdl_desc)
 
-            const_width = math.ceil(math.log2(max(enum_values))) if max(enum_values) > 1 else 1
+            const_width = max(enum_values).bit_length()
 
             self.enums[name] = [enum_strings, enum_values, enum_desc, const_width]
             return True, name, enum_strings, enum_values, enum_desc, const_width

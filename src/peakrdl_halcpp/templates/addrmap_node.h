@@ -9,7 +9,6 @@
 template <uint32_t BASE, typename PARENT_TYPE = void>
 class AddrmapNode {
 public:
-    AddrmapNode() {}
 
     static inline uint32_t get(const uint32_t addr) { return PARENT_TYPE::get(addr + BASE); }
     static inline void set(const uint32_t addr, uint32_t val) {
@@ -25,7 +24,6 @@ public:
 template <uint32_t BASE>
 class AddrmapNode <BASE, void> : ArchIoNode {
 public:
-    AddrmapNode() {}
 
     static constexpr uint32_t get_abs_addr() { return BASE; }
 

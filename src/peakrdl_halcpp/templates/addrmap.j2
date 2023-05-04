@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 #include "halcpp_base.h"
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wundefined-var-template"
+#endif
 {% for c in node|getAddrmapNodes %}
 {{ c|getIncludeLine }}
 {% endfor %}
@@ -58,6 +61,5 @@ public:
 
 
 };
-
 
 #endif

@@ -14,6 +14,7 @@ class HalExporter():
                 "halcpp_utils.h",
                 "field_node.h",
                 "reg_node.h",
+                "reg_arr_node.h",
                 "addrmap_node.h",
                 "arch_io.h",
                 ]

@@ -40,6 +40,18 @@ public:
 
 };
 
+{% if r.is_array %}
+template<uint32_t BASE, uint32_t WIDTH, uint32_t LEN, uint32_t STRIDE, typename PARENT_TYPE>
+class {{ r|getTypeName|upper }}_ARR : public halcpp::Arr{{ r|getRegType }}<BASE, WIDTH, LEN, STRIDE, PARENT_TYPE> {
+public:
+{% for ar in r.unrolled() %}
+    {% set reg_offset =  ar.current_idx[0] * ar.array_stride %}
+    static {{ r|getTypeName|upper }}<BASE + 0x{{ "%0x"|format(reg_offset|int) }}, WIDTH, PARENT_TYPE> r{{ ar.current_idx[0] }};
+{% endfor %}
+
+};
+{% endif %}
+
 {% endfor %}
 
 {% for m in node|getMemNodes|filterUniqueTypes %}
@@ -56,7 +68,13 @@ class {{ node|getTypeName|upper }} : public AddrmapNode<BASE, PARENT_TYPE> {
 public:
 
 {% for c in node|getMemberNodes %}
-    static {% if c|isRegNode or c|isMemNode %}{{ node|getOrigTypeName }}_nm::{% endif %}{{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {% if c|isMemNode or c|isRegNode %} {{ c|getSizeOrWidth }}, {% endif %}{{ node|getClsTmplSpec }}> {{ c.inst_name }};
+    {% if c|isArrRegNode %}
+        static {{ node|getOrigTypeName }}_nm::{{ c|getTypeName()|upper }}_ARR<0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ c|getSizeOrWidth }}, {{ c.array_dimensions[0] }}, {{ c.array_stride*8 }}, {{ node|getClsTmplSpec }}> {{ c.inst_name }};
+    {% elif c|isRegNode or c|isMemNode %}
+        static {{ node|getOrigTypeName }}_nm::{{ c|getTypeName()|upper }}<0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ c|getSizeOrWidth }}, {{ node|getClsTmplSpec }}> {{ c.inst_name }};
+    {% else %}
+    static {{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ node|getClsTmplSpec }}> {{ c.inst_name }};
+    {% endif %}
 {% endfor %}
 
 

@@ -68,7 +68,7 @@ class HalUtils():
             if isinstance(c, RegNode):
                 if c.is_array:
                     assert c.size == c.array_stride, f"Different stride than regwidth is not supported {c.size} {c.array_stride}"
-                    assert len(c.array_dimensions) == 1, f"Multidimensional arrays are not supported {c.array_dimensions}"
+                    # assert len(c.array_dimensions) == 1, f"Multidimensional arrays are not supported {c.array_dimensions}"
 
             if isinstance(c, AddressableNode):
                 nodes.append(c)

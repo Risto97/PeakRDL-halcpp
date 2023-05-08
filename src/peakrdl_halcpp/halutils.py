@@ -37,6 +37,12 @@ class HalUtils():
     def isRegNode(self, node : Node):
         return isinstance(node, RegNode)
 
+    def isArrRegNode(self, node : Node):
+        if self.isRegNode(node):
+            return node.is_array # type: ignore
+
+        return False
+
     def isAddressableNode(self, node : Node):
         return isinstance(node, AddressableNode)
 
@@ -49,9 +55,21 @@ class HalUtils():
         else:
             return out + type_name + '.h"'
 
+    def getAddrOffset(self, node : AddressableNode):
+        if isinstance(node, RegNode):
+            if node.is_array:
+                return next(node.unrolled()).address_offset # type: ignore
+
+        return node.address_offset
+
     def getAddressableNodes(self, node : Node):
         nodes = []
         for c in node.children():
+            if isinstance(c, RegNode):
+                if c.is_array:
+                    assert c.size == c.array_stride, f"Different stride than regwidth is not supported {c.size} {c.array_stride}"
+                    # assert len(c.array_dimensions) == 1, f"Multidimensional arrays are not supported {c.array_dimensions}"
+
             if isinstance(c, AddressableNode):
                 nodes.append(c)
         return nodes
@@ -106,6 +124,14 @@ class HalUtils():
         for c in node.children():
             if isinstance(c, RegNode):
                 nodes.append(c)
+        return nodes
+
+    def getRegArrNodes(self, node : Node):
+        nodes = []
+        for c in node.children():
+            if isinstance(c, RegNode):
+                if c.is_array:
+                    nodes.append(c)
         return nodes
 
     def getFieldNodes(self, node : Node):
@@ -205,13 +231,13 @@ class HalUtils():
 
         return out
 
-    def getRegType(self, field : RegNode):
+    def getRegType(self, node : RegNode):
         out = ""
-        if field.has_sw_readable and field.has_sw_writable:
+        if node.has_sw_readable and node.has_sw_writable:
             return "RegRW"
-        elif field.has_sw_writable and not field.has_sw_readable:
+        elif node.has_sw_writable and not node.has_sw_readable:
             return "RegWO"
-        elif field.has_sw_readable:
+        elif node.has_sw_readable:
             return "RegRO"
 
         return out
@@ -280,31 +306,34 @@ class HalUtils():
             lstrip_blocks=True)
 
         env.filters.update({
-            'zip' : zip,
-            'isRootNode' : self.isRootNode,
-            'isMemNode' : self.isMemNode,
-            'isRegNode' : self.isRegNode,
-            'isAddressableNode' : self.isAddressableNode,
+            'zip'                 : zip,
+            'isRootNode'          : self.isRootNode,
+            'isMemNode'           : self.isMemNode,
+            'isRegNode'           : self.isRegNode,
+            'isArrRegNode'        : self.isArrRegNode,
+            'isAddressableNode'   : self.isAddressableNode,
             'getAddressableNodes' : self.getAddressableNodes,
-            'getRegNodes' : self.getRegNodes,
-            'getAddrmapNodes' : self.getAddrmapNodes,
-            'getMemNodes' : self.getMemNodes,
-            'getFieldType' : self.getFieldType,
-            'getRegType' : self.getRegType,
-            'getSizeOrWidth' : self.getSizeOrWidth,
-            'getFieldNodes' : self.getFieldNodes,
-            'getTypeName' : self.getTypeName,
-            'hasEnum' : self.hasEnum,
-            'getEnum' : self.getEnum,
-            'getOrigTypeName' : self.getOrigTypeName,
-            # 'getHalClassName' : self.getHalClassName,
-            'getIncludeLine' : self.getIncludeLine,
-            'findExtern' : self.findExtern,
-            'getMemberNodes' : self.getMemberNodes,
-            'filterUniqueTypes' : self.filterUniqueTypes,
-            'getClsTmplSpec' : self.getClsTmplSpec,
-            'getTemplateLine' : self.getTemplateLine,
-            'getDocstring' : self.getDocstring,
+            'getAddrOffset'       : self.getAddrOffset,
+            'getRegNodes'         : self.getRegNodes,
+            'getRegArrNodes'      : self.getRegArrNodes,
+            'getAddrmapNodes'     : self.getAddrmapNodes,
+            'getMemNodes'         : self.getMemNodes,
+            'getFieldType'        : self.getFieldType,
+            'getRegType'          : self.getRegType,
+            'getSizeOrWidth'      : self.getSizeOrWidth,
+            'getFieldNodes'       : self.getFieldNodes,
+            'getTypeName'         : self.getTypeName,
+            'hasEnum'             : self.hasEnum,
+            'getEnum'             : self.getEnum,
+            'getOrigTypeName'     : self.getOrigTypeName,
+            #                     'getHalClassName' : self.getHalClassName,
+            'getIncludeLine'      : self.getIncludeLine,
+            'findExtern'          : self.findExtern,
+            'getMemberNodes'      : self.getMemberNodes,
+            'filterUniqueTypes'   : self.filterUniqueTypes,
+            'getClsTmplSpec'      : self.getClsTmplSpec,
+            'getTemplateLine'     : self.getTemplateLine,
+            'getDocstring'        : self.getDocstring,
             })
 
         res = env.get_template(template).render(context)

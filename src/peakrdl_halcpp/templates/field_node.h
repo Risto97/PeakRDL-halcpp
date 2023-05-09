@@ -119,7 +119,6 @@ public:
                 return FieldNode<FieldWrMixin<base_type>>();
         }
         else if constexpr (num_of_mixins == 2){
-            using second_mixin = typename std::tuple_element<1, std::tuple<FieldMixins...>>::type;
             return FieldNode<FieldWrMixin<base_type>, FieldRdMixin<base_type > >();
         }
     }

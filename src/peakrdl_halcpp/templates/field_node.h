@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <type_traits>
+#include <tuple>
 #include "halcpp_utils.h"
 
 namespace halcpp{
@@ -27,6 +28,9 @@ protected:
         static_assert(width <= 32, "Register cannot be bigger than 32 bits");
         return (~0u) ^ (((1u << (width)) - 1) << START_BIT);
     }
+    static constexpr uint32_t field_mask() {
+        return (((1u << (width)) - 1));
+    }
 };
 
 template <typename BASE_TYPE>
@@ -37,7 +41,7 @@ public:
 
     static inline void set(typename BASE_TYPE::dataType val) {
         if constexpr (node_has_get_v<parent>)
-            parent::set((parent::get() & BASE_TYPE::calc_mask()) | (val << BASE_TYPE::start_bit));
+            parent::set((parent::get() & BASE_TYPE::calc_mask()) | ((val & BASE_TYPE::field_mask()) << BASE_TYPE::start_bit));
         else
             parent::set(val << BASE_TYPE::start_bit);
     }
@@ -92,6 +96,31 @@ public:
     typename std::enable_if<std::disjunction_v<node_has_set<FieldMixins>...>, T>::type
     operator=(Tp val) {
         call_set<Tp, FieldMixins...>(val);
+    }
+
+    template<int32_t IDX>
+    static constexpr auto at()
+    {
+        using first_mixin  = typename std::tuple_element<0, std::tuple<FieldMixins...>>::type;
+        using parent_type = typename first_mixin::parent;
+
+        static_assert( IDX <  static_cast<int32_t>(first_mixin::width) );
+        static_assert( IDX >=  -1 );
+        constexpr uint32_t idx = IDX == -1 ? first_mixin::width-1 : IDX;
+
+        constexpr std::size_t num_of_mixins = sizeof...(FieldMixins);
+
+        using base_type = FieldBase<idx, idx, parent_type>;
+
+        if constexpr(num_of_mixins == 1){
+            if constexpr(node_has_get_v<first_mixin>)
+                return FieldNode<FieldRdMixin<base_type>>();
+            if constexpr(node_has_set_v<first_mixin>)
+                return FieldNode<FieldWrMixin<base_type>>();
+        }
+        else if constexpr (num_of_mixins == 2){
+            return FieldNode<FieldWrMixin<base_type>, FieldRdMixin<base_type > >();
+        }
     }
 };
 

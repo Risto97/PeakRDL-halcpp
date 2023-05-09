@@ -30,7 +30,7 @@ public:
 class {{ r|getTypeName|upper }} : public halcpp::{{ r|getRegType }}{{ r|getClsTmplSpec(True) }} {
 public:
 {% for f in r|getFieldNodes %}
-    inline static halcpp::{{ f|getFieldType }}<{{ f.low }}, {{ f.high }}, {{ r|getClsTmplSpec }} > {{ f.inst_name }}{};
+    static halcpp::{{ f|getFieldType }}<{{ f.low }}, {{ f.high }}, {{ r|getClsTmplSpec }} > {{ f.inst_name }};
 {% endfor %}
 
 
@@ -57,11 +57,11 @@ public:
 
 {% for c in node|getMemberNodes %}
     {% if c|isArrRegNode %}
-        inline static halcpp::REG_ARR_NODE<{{ node|getOrigTypeName }}_nm::{{ c|getTypeName|upper }}, 0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ c|getSizeOrWidth }}, {{ c.array_stride }}, {{ node|getClsTmplSpec }}, {{ c.array_dimensions|join(', ') }}> {{ c.inst_name }}{};
+        static halcpp::REG_ARR_NODE<{{ node|getOrigTypeName }}_nm::{{ c|getTypeName|upper }}, 0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ c|getSizeOrWidth }}, {{ c.array_stride }}, {{ node|getClsTmplSpec }}, {{ c.array_dimensions|join(', ') }}> {{ c.inst_name }};
     {% elif c|isRegNode or c|isMemNode %}
-    inline static {{ node|getOrigTypeName }}_nm::{{ c|getTypeName()|upper }}<0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ c|getSizeOrWidth }}, {{ node|getClsTmplSpec }}> {{ c.inst_name }}{};
+    static {{ node|getOrigTypeName }}_nm::{{ c|getTypeName()|upper }}<0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ c|getSizeOrWidth }}, {{ node|getClsTmplSpec }}> {{ c.inst_name }};
     {% else %}
-    inline static {{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ node|getClsTmplSpec }}> {{ c.inst_name }}{};
+    static {{ c|getTypeName(check_extern=True)|upper }}<0x{{ "%0x"|format(c|getAddrOffset|int) }}, {{ node|getClsTmplSpec }}> {{ c.inst_name }};
     {% endif %}
 {% endfor %}
 

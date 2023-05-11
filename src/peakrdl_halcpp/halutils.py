@@ -208,7 +208,8 @@ class HalUtils():
 
             const_width = max(enum_values).bit_length()
 
-            self.enums[name] = [enum_strings, enum_values, enum_desc, const_width]
+
+            self.enums[name] = [enum_strings, enum_values, enum_desc, const_width, node.owning_addrmap]
             return True, name, enum_strings, enum_values, enum_desc, const_width
         
         return False, None, None, None, None, None

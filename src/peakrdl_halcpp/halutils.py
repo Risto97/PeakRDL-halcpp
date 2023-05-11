@@ -197,7 +197,8 @@ class HalUtils():
         if encode is not None:
             name = encode.__name__;
             if name in self.enums:
-                return False, None, None, None, None, None
+                if self.enums[name][-1] == node.owning_addrmap:
+                    return False, None, None, None, None, None
             enum_strings = []
             enum_values = []
             enum_desc = []
@@ -207,7 +208,6 @@ class HalUtils():
                 enum_desc.append(encode.members[k].rdl_desc)
 
             const_width = max(enum_values).bit_length()
-
 
             self.enums[name] = [enum_strings, enum_values, enum_desc, const_width, node.owning_addrmap]
             return True, name, enum_strings, enum_values, enum_desc, const_width

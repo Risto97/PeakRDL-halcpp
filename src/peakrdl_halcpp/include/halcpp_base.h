@@ -5,6 +5,7 @@
 #include <type_traits>
 #include "field_node.h"
 #include "reg_node.h"
+#include "csr_reg_node.h"
 #include "reg_arr_node.h"
 #include "addrmap_node.h"
 

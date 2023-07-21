@@ -165,6 +165,8 @@ class HalReg(HalBase):
         return self.bus_offset + self.node.address_offset
 
 
+
+
 class HalArrReg(HalReg):
     def __init__(self, 
                  node : RegNode,
@@ -250,20 +252,33 @@ class HalAddrmap(HalBase):
     def is_root_node(self) -> bool:
         return self.parent == None
 
+    @property
+    def is_zicsr(self) -> bool:
+        return self.node.get_property("zicsr", default=False)
+
     def get_regs(self) -> 'List[HalReg]':
         regs = []
         for c in self.node.children():
             if isinstance(c, RegNode):
-                reg = HalArrReg(c, self) if c.is_array else HalReg(c, self)
+                if c.get_property("zicsr", default=False) or self.is_zicsr:
+                    reg = HalCsrReg(c, self)
+                else:
+                    reg = HalArrReg(c, self) if c.is_array else HalReg(c, self)
                 regs.append(reg)
         return regs
-        # return [HalReg(c) for c in self.node.children() if isinstance(c, RegNode)]
 
     def get_mems(self) -> 'List[HalMem]':
         return [HalMem(c, self) for c in self.node.children() if isinstance(c, MemNode)]
 
     def get_addrmaps(self) -> 'List[HalAddrmap]':
-        return [HalAddrmap(c, self) for c in self.node.children() if isinstance(c, AddrmapNode)]
+        addrmaps = []
+        for c in self.node.children():
+            if isinstance(c, AddrmapNode):
+                if c.get_property("zicsr", default=False):
+                    addrmaps.append(HalCsrAddrmap(c, self))
+                else:
+                    addrmaps.append(HalAddrmap(c, self))
+        return addrmaps
 
     def remove_buses(self):
         for c in self.addrmaps:
@@ -307,4 +322,31 @@ class HalAddrmap(HalBase):
     @property
     def addr_offset(self) -> int:
         return self.bus_offset + self.node.address_offset
+
+class HalCsrReg(HalReg):
+
+    def __init__(self,
+                 node: RegNode,
+                 parent: 'HalAddrmap'
+                 ):
+        super().__init__(node, parent)
+
+    @property
+    def addr_offset(self) -> int:
+        return self.node.address_offset
+
+class HalCsrAddrmap(HalAddrmap):
+
+    def __init__(self,
+                 node: AddrmapNode,
+                 parent: 'HalAddrmap',
+                 ):
+        super().__init__(node, parent)
+        assert parent is not None, f"CsrAddrmap cannot be root for now"
+
+    @property
+    def addr_offset(self) -> int:
+        assert isinstance(self.node, AddrmapNode)
+        return self.node.address_offset
+
 

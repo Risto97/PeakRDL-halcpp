@@ -58,11 +58,11 @@ public:
 
 {% for c in halnode.addrmaps + halnode.regs + halnode.mems %}
     {% if c.__class__.__name__ == "HalArrReg" %}
-    static halcpp::REG_ARR_NODE<{{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}, 0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, {{ c.node.array_stride }}, {{ halnode.get_cls_tmpl_spec() }}, {{ c.node.array_dimensions|join(', ') }}> {{ c.node.inst_name }};
-    {% elif c.__class__.__name__ == "HalReg" or c.__class__.__name__ == "HalMem" %}
-    static {{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, {{ halnode.get_cls_tmpl_spec() }}> {{ c.node.inst_name }};
+        static halcpp::REG_ARR_NODE<{{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}, 0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, {{ c.node.array_stride }}, {{ halnode.get_cls_tmpl_spec() }}, {{ c.node.array_dimensions|join(', ') }}> {{ c.node.inst_name }};   // {{ c.__class__.__name__ }}
+    {% elif c.__class__.__name__ == "HalReg" or c.__class__.__name__ == "HalMem" or c.__class__.__name__ == "HalCsrReg" %}
+    static {{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, {{ halnode.get_cls_tmpl_spec() }}> {{ c.node.inst_name }};   // {{ c.__class__.__name__ }}
     {% else %}
-    static {{ halutils.get_extern(c)|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ halnode.get_cls_tmpl_spec() }}> {{ c.node.inst_name }};
+    static {{ halutils.get_extern(c)|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ halnode.get_cls_tmpl_spec() }}> {{ c.node.inst_name }};   // {{ c.__class__.__name__ }}
     {% endif %}
 {% endfor %}
 

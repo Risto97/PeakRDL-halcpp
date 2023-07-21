@@ -8,7 +8,11 @@ from .haladdrmap import *
 from .halutils import HalUtils
 
 class HalExporter():
-    def __init__(self):
+    def __init__(self,
+                outdir : str,
+                keep_buses : bool=False,
+                ext : list=[],
+                ):
         self.cpp_dir = "include"
 
         self.base_headers = [
@@ -22,12 +26,16 @@ class HalExporter():
                 "arch_io.h",
                 ]
 
-    def list_files(self,
-                   top : HalAddrmap,
-                   outdir : str,
-                   ):
-        out_files = [os.path.join(outdir, addrmap.type_name + ".h") for addrmap in top.get_addrmaps_recursive()]
-        out_files += [os.path.join(outdir, x) for x in self.base_headers] + out_files
+        self.halutils = HalUtils(ext)
+
+        self.top = None
+        self.outdir = outdir
+        self.keep_buses = keep_buses
+
+    def list_files(self):
+        assert self.top is not None
+        out_files = [os.path.join(self.outdir, addrmap.type_name + ".h") for addrmap in self.top.get_addrmaps_recursive()]
+        out_files += [os.path.join(self.outdir, x) for x in self.base_headers] + out_files
         print(*out_files) # Print files to stdout
 
     def copy_base_headers(self, outdir):
@@ -37,56 +45,35 @@ class HalExporter():
             os.makedirs(outdir)
         [shutil.copy(x, outdir) for x in abspaths]
 
-    def export(self,
-            nodes: 'Union[Node, List[Node]]',
-            outdir: str, 
-            list_files: bool=False,
-            ext : list=[],
-            keep_buses : bool=False,
-            **kwargs: 'Dict[str, Any]') -> None:
+    def create_model(self, node: AddrmapNode) -> HalAddrmap:
 
+        top = self.halutils.build_hierarchy(
+                node=node,
+                remove_root=False, # TODO fix
+                keep_buses=self.keep_buses,
+                )
 
-        # if not a list
-        if not isinstance(nodes, list):
-            nodes = [nodes]
-
-        # If it is the root node, skip to top addrmap
-        for i, node in enumerate(nodes):
-            if isinstance(node, RootNode):
-                nodes[i] = node.top
-
-        if kwargs:
-            raise TypeError("got an unexpected keyword argument '%s'" % list(kwargs.keys())[0])
-
+        self.top = top
+        return top
+    
+    def generate_output(self):
+        assert self.top is not None
         try:
-            os.makedirs(outdir)
+            os.makedirs(self.outdir)
         except FileExistsError:
             pass
 
-        halutils = HalUtils(ext)
+        for halnode in self.top.get_addrmaps_recursive():
+            context = {
+                    'halnode'  : halnode,
+                    'halutils' : self.halutils,
+                    }
+            text = self.process_template(context)
+            out_file = os.path.join(self.outdir, halnode.type_name + ".h")
+            with open(out_file, 'w') as f:
+                f.write(text)
 
-        assert isinstance(nodes[-1], AddrmapNode)
-        top = halutils.build_hierarchy(
-                node=nodes[-1],
-                remove_root=False, # TODO fix
-                keep_buses=keep_buses,
-                )
-
-
-        if list_files:
-            self.list_files(top, outdir)
-        else:
-            for halnode in top.get_addrmaps_recursive():
-                context = {
-                        'halnode'  : halnode,
-                        'halutils' : halutils,
-                        }
-                text = self.process_template(context)
-                out_file = os.path.join(outdir, halnode.type_name + ".h")
-                with open(out_file, 'w') as f:
-                    f.write(text)
-
-            self.copy_base_headers(outdir)
+        self.copy_base_headers(self.outdir)
 
     def process_template(self, context : dict) -> str:
 

@@ -1,20 +1,18 @@
-from typing import TYPE_CHECKING
+from systemrdl.node import  AddrmapNode
 
 from peakrdl.plugins.exporter import ExporterSubcommandPlugin #pylint: disable=import-error
 from peakrdl.config import schema #pylint: disable=import-error
 
-# from peakrdl.main import main
+from peakrdl.main import main as peakrdl_main
 from .exporter import  HalExporter
 import sys
-
-if TYPE_CHECKING:
-    import argparse
-    from systemrdl.node import AddrmapNode
-
+import argparse
 
 class Exporter(ExporterSubcommandPlugin):
     short_desc = "Generate CPP Hardware Abstraction Layer libraries"
     long_desc = "Generate CPP Hardware Abstraction Layer libraries"
+
+    hal = None
 
 
     def add_exporter_arguments(self, arg_group: 'argparse.ArgumentParser') -> None:
@@ -43,15 +41,23 @@ class Exporter(ExporterSubcommandPlugin):
 
 
     def do_export(self, top_node: 'AddrmapNode', options: 'argparse.Namespace') -> None:
-        hal = HalExporter()
-        hal.export(
-            nodes=top_node,
-            outdir=options.output,
-            list_files=options.list_files,
-            ext=options.ext,
-            keep_buses=options.keep_buses,
-        )
+        if Exporter.hal is None:            # Use static member so the hal object is the same on the next pass for zicsr registers
+            Exporter.hal = HalExporter(
+                    outdir=options.output,
+                    ext=options.ext,
+                    )
+            Exporter.hal.create_model(top_node)
+        elif Exporter.hal.top is not None and "USE_ZICSR=1" in options.defines:
+            Exporter.hal.halutils.add_csr_addrmaps(top_node, Exporter.hal.top, Exporter.hal.keep_buses)
 
-        # if "-DUSE_ZICSR=1" not in sys.argv:
-        #     sys.argv.append("-DUSE_ZICSR=1")
-        #     main()
+        if "-DUSE_ZICSR=1" not in sys.argv:
+            sys.argv.append("-DUSE_ZICSR=1")
+            peakrdl_main()
+
+        if options.list_files:
+            Exporter.hal.list_files()
+            exit()
+        else:
+            Exporter.hal.generate_output()
+            exit()
+

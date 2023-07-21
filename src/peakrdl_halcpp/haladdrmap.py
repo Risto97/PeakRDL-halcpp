@@ -333,7 +333,7 @@ class HalCsrReg(HalReg):
 
     @property
     def addr_offset(self) -> int:
-        return self.node.address_offset
+        return self.node.address_offset >> 2
 
 class HalCsrAddrmap(HalAddrmap):
 

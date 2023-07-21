@@ -48,3 +48,27 @@ class HalUtils():
             top.remove_buses()
 
         return top
+
+    def add_csr_addrmaps(self,
+                         node : AddrmapNode,
+                         halnode : HalAddrmap,
+                         keep_buses : bool = False,
+                         ):
+
+        top = self.build_hierarchy(
+                node=node,
+                remove_root=False, # TODO fix
+                keep_buses=keep_buses,
+                )
+
+        zicsr_addrmaps = []
+        for c in top.get_addrmaps_recursive():
+            if c.is_zicsr:
+                zicsr_addrmaps.append(c)
+
+        for c_zicsr in zicsr_addrmaps:
+            for c in halnode.get_addrmaps_recursive():
+                if c_zicsr.parent.node.get_path() == c.node.get_path():
+                    c.addrmaps.append(c_zicsr)
+                    continue
+

@@ -134,7 +134,7 @@ class HalReg(HalBase):
 
     @property
     def width(self) -> int:
-        return sum(c.width for c in self.fields)
+        return max([c.node.high for c in self.fields]) + 1
 
     def get_fields(self) -> 'List[HalField]':
         return [HalField(c, self) for c in self.node.children() if isinstance(c, FieldNode)]

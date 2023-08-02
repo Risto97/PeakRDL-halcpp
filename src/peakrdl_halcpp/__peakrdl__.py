@@ -20,6 +20,7 @@ class Exporter(ExporterSubcommandPlugin):
         arg_group.add_argument(
                 "--ext",
                 nargs="*", 
+                default=[],
                 help="list of addrmap modules that have implemented <name>_EXT class in <name>_ext.h header file, used for extending functionality"
                 )
 

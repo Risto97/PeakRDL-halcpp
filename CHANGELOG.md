@@ -1,3 +1,6 @@
+# V0.3.1
+
+* Fix for when register has sparse fields [c3c1fcd](https://github.com/Risto97/PeakRDL-halcpp/commit/c3c1fcd57d170024843caf99a4c04fcd5e11af60)
 
 # V0.3.0
 

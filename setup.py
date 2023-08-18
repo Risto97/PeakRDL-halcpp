@@ -17,6 +17,7 @@ setuptools.setup(
     author_email="risto.pejasinovic@gmail.com",
     description="Generate CPP Hardware Abstraction Layer libraries",
     long_description=long_description,
+    long_description_content_type='text/markdown',
     url="https://github.com/Risto97/PeakRDL-halcpp",
     package_dir={'': 'src'},
     packages=[

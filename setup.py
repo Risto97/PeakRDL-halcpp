@@ -22,6 +22,7 @@ setuptools.setup(
     package_dir={'': 'src'},
     packages=[
         'peakrdl_halcpp',
+        'peakrdl_halcpp.templates'
     ],
     package_data={'peakrdl_halcpp' : ['templates/*']},
     include_package_data=True,

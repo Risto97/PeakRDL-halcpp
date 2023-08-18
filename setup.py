@@ -20,12 +20,9 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url="https://github.com/Risto97/PeakRDL-halcpp",
     package_dir={'': 'src'},
-    packages=[
-        'peakrdl_halcpp',
-        'peakrdl_halcpp.templates'
-    ],
-    package_data={'peakrdl_halcpp' : ['templates/*']},
+    packages=setuptools.find_packages("src"),
     include_package_data=True,
+    python_requires='>=3.6',
     install_requires=[
         "systemrdl-compiler>=1.25.0",
         "Jinja2>=3.0.0",

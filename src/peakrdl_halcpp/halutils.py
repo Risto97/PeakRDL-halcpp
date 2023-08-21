@@ -15,8 +15,9 @@ class HalUtils():
         return halnode.orig_type_name + "_ext.h" if has_extern else halnode.type_name + ".h"
 
     def has_extern(self, halnode : HalAddrmap) -> bool:
-        if halnode.orig_type_name in self.extern:
-            return True
+        if self.extern is not None:
+            if halnode.orig_type_name in self.extern:
+                return True
         return False
 
     def get_extern(self, halnode : HalAddrmap) -> str:

@@ -1,0 +1,36 @@
+---
+sidebar_position: 2
+---
+
+# Example
+
+The easiest way is to use the [PeakRDL command line tool](https://peakrdl.readthedocs.io/):
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+import CodeBlock from '@theme/CodeBlock';
+
+```mdx-code-block
+<Tabs>
+<TabItem value="PeakRDL CLI">
+```
+```bash
+# Install the command line tool
+python3 -m pip install peakrdl
+
+# Export!
+peakrdl halcpp examples/atxmega_spi.rdl -o examples/generated/
+```
+
+import ExampleCode from '!!raw-loader!../../../examples/export.py';
+
+```mdx-code-block
+</TabItem>
+<TabItem value="Python script">
+```
+<CodeBlock language="python">{ExampleCode}</CodeBlock>
+
+```mdx-code-block
+</TabItem>
+</Tabs>
+```

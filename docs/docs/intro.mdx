@@ -1,0 +1,60 @@
+---
+sidebar_position: 1
+---
+
+# Introduction
+
+PeakRDL-halcpp is a free and open-source C++ (HAL) Hardware Abstraction Layer generator.
+The tool converts a SystemRDL description into a C++ low level HAL drivers.
+Generated drivers are meant to be used for interfacing the registers in the IP block, usually by a CPU connected to the peripheral through a bus.
+
+* Generated drivers are based on C++17 standard
+* The size and performance of the compiled binary is the same as equivalent C drivers
+* Generated drivers preserve the hierarchy of the source SystemRDL description, composing a C++ template class based hierarchy
+* Use only embedded friendly parts of the C++ standard to be suitable for resource constrained environments like microcontrollers 
+
+## Features
+
+Some of the features that are available within the drivers:
+
+### Assignment and conversion operators
+
+Assignment and conversion operators are provided for Fields and Registers in order to have a nicer and more readable code.<br/>
+It is possible to write code like this:
+
+```cpp
+soc.gpio0.ODR = 0xff;
+uint32_t in_data = soc.gpio0.IDR;
+```
+
+An equivalent code without using the operators would be:
+```cpp
+soc.gpio0.ODR.set(0xff);
+uint32_t in_data = soc.gpio0.IDR.get();
+```
+
+### Constants and enumerations
+
+There is a `Const` type that provides a compile time constant.
+On top of `Const` class enumerations are constructed from the SystemRDL description.
+
+The `Const` class also provides a concatenation with `,` (comma) operator, so its possible to assign value to a register like this:
+
+```cpp
+soc.gpio0.CFG0 = (pincfg::IN, pincfg::OUT, pincfg::OUT_PP, pincfg::OUT_OD);
+```
+
+The goal is to avoid magical numbers in your code, which can look like this:
+
+```cpp
+soc.gpio0.CFG0 = 0x123456;
+```
+
+In previous case `CFG0` is a 24-bit register and pincfg is a 3-bit enum, so the total number of bits in the concatenation will amount to 12, this will cause a compilation error.
+It is by default strongly typed and does not allow width missmatch. To solve this in previous example, it is neccessary to pad the list with Const, like this:
+
+```cpp
+soc.gpio0.CFG0 = (Const<12, 0>(), pincfg::IN, pincfg::OUT, pincfg::OUT_PP, pincfg::OUT_OD);
+```
+
+Const is the template that the other enums are built from, and its parameters are `Const<WIDTH, VAL>`

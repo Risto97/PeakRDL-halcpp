@@ -1,6 +1,9 @@
 from systemrdl.node import Node, AddrmapNode, RegNode, RootNode, MemNode, FieldNode, AddressableNode
 from typing import List, Dict
 
+from functools import reduce
+import operator
+
 class HalBase: # TODO make abstract
     def __init__(self, 
                  node : Node,
@@ -162,7 +165,7 @@ class HalReg(HalBase):
 
     @property
     def addr_offset(self) -> int:
-        return self.bus_offset + self.node.address_offset
+        return self.bus_offset + next(self.node.unrolled()).address_offset # type: ignore
 
 
 class HalArrReg(HalReg):
@@ -254,10 +257,10 @@ class HalAddrmap(HalBase):
         regs = []
         for c in self.node.children():
             if isinstance(c, RegNode):
-                reg = HalArrReg(c, self) if c.is_array else HalReg(c, self)
+                dim = lambda dims: reduce(operator.mul, dims, 1)
+                reg = HalArrReg(c, self) if (c.is_array and dim(c.array_dimensions) > 1) else HalReg(c, self)
                 regs.append(reg)
         return regs
-        # return [HalReg(c) for c in self.node.children() if isinstance(c, RegNode)]
 
     def get_mems(self) -> 'List[HalMem]':
         return [HalMem(c, self) for c in self.node.children() if isinstance(c, MemNode)]

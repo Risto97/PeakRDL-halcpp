@@ -1,4 +1,4 @@
-from systemrdl.node import Node, AddrmapNode, RegNode, RootNode, MemNode, FieldNode, AddressableNode
+from systemrdl.node import Node, AddrmapNode, RegNode, RootNode, MemNode, FieldNode, AddressableNode, RegfileNode
 from typing import List, Dict
 
 class HalBase: # TODO make abstract
@@ -118,7 +118,7 @@ class HalReg(HalBase):
     
     def __init__(self, 
                  node : RegNode,
-                 parent : 'HalAddrmap',
+                 parent : 'HalAddrmap|HalRegfile',
                  bus_offset : int = 0,
                  ):
         super().__init__(node, parent)
@@ -141,16 +141,12 @@ class HalReg(HalBase):
 
     @property
     def cpp_type(self):
-        if self.parent.node.get_property("zicsr", default=False) or self.node.get_property("zicsr", default=False):
-            prefix = "Csr"
-        else:
-            prefix = ""
         if self.node.has_sw_readable and self.node.has_sw_writable:
-            return prefix + "RegRW"
+            return "RegRW"
         elif self.node.has_sw_writable and not self.node.has_sw_readable:
-            return prefix + "RegWO"
+            return "RegWO"
         elif self.node.has_sw_readable:
-            return prefix + "RegRO"
+            return "RegRO"
         assert False
 
     def get_template_line(self) -> str:
@@ -168,7 +164,7 @@ class HalReg(HalBase):
 class HalArrReg(HalReg):
     def __init__(self, 
                  node : RegNode,
-                 parent : 'HalAddrmap',
+                 parent : 'HalAddrmap|HalRegfile',
                  bus_offset : int = 0,
                  ):
         super().__init__(node, parent)
@@ -227,6 +223,70 @@ class HalMem(HalBase):
     def addr_offset(self) -> int:
         return self.bus_offset + self.node.address_offset
 
+class HalRegfile(HalBase):
+    
+    def __init__(self, 
+                 node : RegfileNode,
+                 parent : 'HalAddrmap',
+                 bus_offset : int = 0,
+                 ):
+        super().__init__(node, parent)
+        self.node = node # TODO REMOVE
+        self.parent = parent
+        self.bus_offset = bus_offset
+
+        self.regs = self.get_regs()
+        self.regfiles = self.get_regfiles()
+    
+    @property # TODO move to base?
+    def is_array(self) -> bool:
+        return self.node.is_array
+
+    # @property
+    # def width(self) -> int:
+    #     return max([c.node.high for c in self.]) + 1
+
+    def get_regs(self) -> 'List[HalReg]':
+        return [HalReg(c, self) for c in self.node.children() if isinstance(c, RegNode)]
+
+    def get_regfiles(self) -> 'List[HalRegfile]':
+        return [HalRegfile(c, self) for c in self.node.children() if isinstance(c, RegfileNode)]
+
+    @property
+    def cpp_type(self):
+        return "RegfileNode"
+
+    def get_template_line(self) -> str:
+        return f"template<uint32_t BASE, typename PARENT_TYPE>"
+
+    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
+        str = self.type_name.upper() if not just_tmpl else ""
+        return str + "<BASE, PARENT_TYPE>"
+
+    @property
+    def addr_offset(self) -> int:
+        return self.bus_offset + next(self.node.unrolled()).address_offset # type: ignore
+
+class HalArrRegfile(HalRegfile):
+    def __init__(self, 
+                 node : RegfileNode,
+                 parent : 'HalAddrmap|HalRegfile',
+                 bus_offset : int = 0,
+                 ):
+        super().__init__(node, parent)
+        self.node = node # TODO REMOVE
+        self.bus_offset = bus_offset
+
+        assert node.is_array, "Register File Node is not array"
+
+        assert self.node.size == self.node.array_stride, f"Different stride than regwidth is not supported {self.node.size} {self.node.array_stride}"
+
+    @property
+    def addr_offset(self):
+        return self.bus_offset + next(self.node.unrolled()).address_offset # type: ignore
+
+
+
 class HalAddrmap(HalBase):
     def __init__(self,
             node : AddrmapNode,
@@ -243,6 +303,7 @@ class HalAddrmap(HalBase):
         self.regs = self.get_regs()
         self.mems = self.get_mems()
         self.addrmaps = self.get_addrmaps()
+        self.regfiles = self.get_regfiles()
 
         self.enums = {}
 
@@ -265,6 +326,14 @@ class HalAddrmap(HalBase):
     def get_addrmaps(self) -> 'List[HalAddrmap]':
         return [HalAddrmap(c, self) for c in self.node.children() if isinstance(c, AddrmapNode)]
 
+    def get_regfiles(self) -> 'List[HalRegfile]':
+        regfiles = []
+        for c in self.node.children():
+            if isinstance(c, RegfileNode):
+                regfile = HalArrRegfile(c, self) if c.is_array else HalRegfile(c, self)
+                regfiles.append(regfile)
+        return regfiles
+
     def remove_buses(self):
         for c in self.addrmaps:
             c.remove_buses()
@@ -279,6 +348,12 @@ class HalAddrmap(HalBase):
         if len(self.regs) == 0 and len(self.mems) == 0:
             return True
         return False
+
+    def get_regfiles_regs(self) -> 'List[HalReg]':
+        regs = []
+        for regfile in self.regfiles:
+            regs.extend(regfile.regs)
+        return regs
 
     def get_template_line(self) -> str:
         if self.is_root_node:

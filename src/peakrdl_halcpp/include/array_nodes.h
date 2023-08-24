@@ -1,5 +1,5 @@
-#ifndef _REG_ARR_NODE_H_
-#define _REG_ARR_NODE_H_
+#ifndef _ARRAY_NODES_H__
+#define _ARRAY_NODES_H__
 
 #include <stdint.h>
 #include <type_traits>
@@ -38,7 +38,7 @@ template<
     template<uint32_t B, uint32_t W, typename P> typename REG_T,
     uint32_t BASE, uint32_t WIDTH, uint32_t STRIDE, typename PARENT_TYPE, uint32_t ... Extents
 >
-class REG_ARR_NODE 
+class  RegArrayNode
 {
     static constexpr uint32_t Dimensions = sizeof...(Extents);
     static_assert( Dimensions > 0 );
@@ -55,8 +55,29 @@ public :
     }
 };
 
+template< 
+    template<uint32_t B, typename P> typename REGFILE_T,
+    uint32_t BASE, uint32_t STRIDE, typename PARENT_TYPE, uint32_t ... Extents
+>
+class RegfileArrayNode
+{
+    static constexpr uint32_t Dimensions = sizeof...(Extents);
+    static_assert( Dimensions > 0 );
+
+public :
+    template<int32_t ... Indices>
+    auto at()
+    {
+        static_assert( sizeof...(Indices) == Dimensions );
+        static_assert( ( valid_index(Indices,Extents) && ... ) );
+        constexpr uint32_t offset = BASE + linear_index<STRIDE>( std::array{ map_index<Indices,Extents>() ... }, std::array{ Extents ... } );
+
+        return REGFILE_T< offset, PARENT_TYPE >();
+    }
+};
+
 }
 
-#endif // !_REG_ARR_NODE_H_
+#endif // !_ARRAY_NODES_H__
 
 

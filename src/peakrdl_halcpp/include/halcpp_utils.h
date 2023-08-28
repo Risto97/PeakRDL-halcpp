@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <cstdint>
 
-namespace halcpp{
+namespace halcpp {
 
 template<uint32_t WIDTH, uint32_t VAL>
 class Const{
@@ -17,8 +17,6 @@ public:
     static constexpr uint32_t width = WIDTH;
 
     template<uint32_t OTHER_WIDTH, uint32_t OTHER_VAL>
-    // inline const Const<OTHER_WIDTH+WIDTH, (OTHER_VAL << WIDTH) | VAL> operator,(const Const<OTHER_WIDTH, OTHER_VAL> &a) const{
-        // return Const<OTHER_WIDTH+WIDTH, (OTHER_VAL << WIDTH) | VAL>();
     inline const Const<OTHER_WIDTH+WIDTH, (VAL << OTHER_WIDTH) | OTHER_VAL> operator,([[maybe_unused]]const Const<OTHER_WIDTH, OTHER_VAL> &a) const{
         return Const<OTHER_WIDTH+WIDTH, (VAL << OTHER_WIDTH) | OTHER_VAL>();
     }

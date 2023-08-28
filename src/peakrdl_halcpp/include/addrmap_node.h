@@ -15,11 +15,6 @@ public:
     static inline void set(const uint32_t addr, uint32_t val) {
         PARENT_TYPE::set(addr + BASE, val);
     }
-
-    static inline uint32_t get_csr(const uint32_t addr) { return PARENT_TYPE::get_csr(addr + BASE); }
-    static inline void set_csr(const uint32_t addr, uint32_t val) {
-        PARENT_TYPE::set_csr(addr + BASE, val);
-    }
 };
 
 /* Specialization for the Top hierarchy addrmap
@@ -36,11 +31,6 @@ public:
         ArchIoNode::write32(addr + BASE, val);
     }
     static inline uint32_t get(uint32_t addr) { return ArchIoNode::read32(addr + BASE); }
-
-    static inline void set_csr(uint32_t addr, uint32_t val) {
-        ArchIoNode::csr_write32(addr + BASE, val);
-    }
-    static inline uint32_t get_csr(uint32_t addr) { return ArchIoNode::csr_read32(addr + BASE); }
 };
 
 #endif // !_ADDRMAP_NODE_H_

@@ -1,8 +1,9 @@
 #ifndef _ARRAY_NODES_H__
 #define _ARRAY_NODES_H__
 
-#include <stdint.h>
 #include <type_traits>
+#include <cstdint>
+#include <utility>
 #include <array>
 #include "halcpp_utils.h"
 
@@ -40,10 +41,13 @@ template<
 >
 class  RegArrayNode
 {
+private:
     static constexpr uint32_t Dimensions = sizeof...(Extents);
     static_assert( Dimensions > 0 );
-
 public :
+    static constexpr uint32_t stride = STRIDE;
+    static_assert( Dimensions > 0 );
+
     template<int32_t ... Indices>
     auto at()
     {
@@ -53,6 +57,14 @@ public :
 
         return REG_T< offset, WIDTH, PARENT_TYPE >();
     }
+
+    template<uint32_t IDX>
+    constexpr uint32_t get_dim(){
+        static_assert(IDX < Dimensions, "Index out of bounds");
+
+        constexpr std::array<uint32_t, Dimensions> dimensions_array = {Extents...};
+        return dimensions_array[IDX];
+    }
 };
 
 template< 
@@ -61,10 +73,12 @@ template<
 >
 class RegfileArrayNode
 {
+private:
     static constexpr uint32_t Dimensions = sizeof...(Extents);
     static_assert( Dimensions > 0 );
-
 public :
+    static constexpr uint32_t stride = STRIDE;
+
     template<int32_t ... Indices>
     auto at()
     {
@@ -74,7 +88,28 @@ public :
 
         return REGFILE_T< offset, PARENT_TYPE >();
     }
+
+    template<uint32_t IDX>
+    constexpr uint32_t get_dim(){
+        static_assert(IDX < Dimensions, "Index out of bounds");
+
+        constexpr std::array<uint32_t, Dimensions> dimensions_array = {Extents...};
+        return dimensions_array[IDX];
+    }
 };
+
+namespace __halcpp_utils {
+
+template<class T, T... inds, class F>
+constexpr void loop(std::integer_sequence<T, inds...>, F&& f) {
+    (f(std::integral_constant<T, inds>{}), ...);
+}
+}
+
+template<class T, T count, class F>
+constexpr void loop(F&& f) {
+    __halcpp_utils::loop(std::make_integer_sequence<T, count>{}, std::forward<F>(f));
+}
 
 }
 

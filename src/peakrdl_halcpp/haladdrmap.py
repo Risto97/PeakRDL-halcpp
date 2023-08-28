@@ -345,7 +345,7 @@ class HalAddrmap(HalBase):
                 self.addrmaps.extend(c.addrmaps) # Steal all addrmaps from a bus
 
     def is_bus(self) -> bool:
-        if len(self.regs) == 0 and len(self.mems) == 0:
+        if len(self.regs) == 0 and len(self.mems) == 0 and len(self.regfiles) == 0:
             return True
         return False
 

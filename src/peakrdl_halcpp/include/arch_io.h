@@ -7,7 +7,9 @@
 class MemIoNode {
 public:
     static inline uint32_t read32(uint32_t addr) { return *(volatile uint32_t*)addr; }
-    static inline void write32(uint32_t addr, uint32_t val) { *(volatile uint32_t*)addr = val; }
+
+    template<typename DATA_T>
+    static inline void write(uint32_t addr, DATA_T val) { *(volatile DATA_T*)addr = val; }
 
 };
 

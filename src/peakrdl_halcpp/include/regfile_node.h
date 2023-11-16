@@ -12,7 +12,9 @@ public:
     static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr() + BASE; }
 
     static inline uint32_t get(const uint32_t addr) { return PARENT_TYPE::get(addr + BASE); }
-    static inline void set(const uint32_t addr, uint32_t val) {
+
+    template<typename DATA_T>
+    static inline void set(const uint32_t addr, DATA_T val) {
         PARENT_TYPE::set(addr + BASE, val);
     }
 };

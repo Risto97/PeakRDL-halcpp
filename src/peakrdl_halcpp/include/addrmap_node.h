@@ -11,8 +11,11 @@ class AddrmapNode {
 public:
     static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr() + BASE; }
 
+    // TODO uint32_t should not be fixed
     static inline uint32_t get(const uint32_t addr) { return PARENT_TYPE::get(addr + BASE); }
-    static inline void set(const uint32_t addr, uint32_t val) {
+
+    template<typename DATA_T>
+    static inline void set(const uint32_t addr, DATA_T val) {
         PARENT_TYPE::set(addr + BASE, val);
     }
 };
@@ -27,9 +30,11 @@ public:
 
     static constexpr uint32_t get_abs_addr() { return BASE; }
 
-    static inline void set(uint32_t addr, uint32_t val) {
-        ArchIoNode::write32(addr + BASE, val);
+    template<typename DATA_T>
+    static inline void set(uint32_t addr, DATA_T val) {
+        ArchIoNode::write(addr + BASE, val);
     }
+    // TODO uint32_t should not be fixed
     static inline uint32_t get(uint32_t addr) { return ArchIoNode::read32(addr + BASE); }
 };
 

@@ -247,7 +247,12 @@ class HalRegfile(HalBase):
     #     return max([c.node.high for c in self.]) + 1
 
     def get_regs(self) -> 'List[HalReg]':
-        return [HalReg(c, self) for c in self.node.children() if isinstance(c, RegNode)]
+        regs = []
+        for c in self.node.children():
+            if isinstance(c, RegNode):
+                reg = HalArrReg(c, self) if c.is_array else HalReg(c, self)
+                regs.append(reg)
+        return regs
 
     def get_regfiles(self) -> 'List[HalRegfile]':
         return [HalRegfile(c, self) for c in self.node.children() if isinstance(c, RegfileNode)]

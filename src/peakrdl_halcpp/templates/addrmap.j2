@@ -55,8 +55,12 @@ public:
 {% for c in rf.regfiles + rf.regs %}
     {% if c.__class__.__name__ == "HalRegfile" %}
         {{ assert("Regfile inside Regfile Not supported yet") }}
-    {% else %}
+    {% elif c.__class__.__name__ == "HalArrReg" %}
+    static halcpp::RegArrayNode<{{ c.type_name|upper }}, 0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, {{ c.node.array_stride }}, TYPE , {{ c.node.array_dimensions|join(', ') }}> {{ c.node.inst_name }};
+    {% elif c.__class__.__name__ == "HalReg" %}
     static {{ c.type_name|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, TYPE> {{ c.node.inst_name }};
+    {% else %}
+        {{ assert("Unsupported") }}
     {% endif %}
 {% endfor %}
 

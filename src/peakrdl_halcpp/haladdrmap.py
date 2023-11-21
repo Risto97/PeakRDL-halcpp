@@ -304,6 +304,8 @@ class HalAddrmap(HalBase):
         self.mems = self.get_mems()
         self.addrmaps = self.get_addrmaps()
         self.regfiles = self.get_regfiles()
+        
+
 
         self.enums = {}
 
@@ -335,14 +337,17 @@ class HalAddrmap(HalBase):
         return regfiles
 
     def remove_buses(self):
+        remove_list = []
         for c in self.addrmaps:
             c.remove_buses()
             if c.is_bus(): # Doesnt have registers or memories, only addrmaps
                 for subc in c.addrmaps: # Change parent
                     subc.bus_offset += c.addr_offset
                     subc.parent = self
-                self.addrmaps.remove(c)
+                remove_list.append(c)
                 self.addrmaps.extend(c.addrmaps) # Steal all addrmaps from a bus
+                
+        [self.addrmaps.remove(c) for c in remove_list]
 
     def is_bus(self) -> bool:
         if len(self.regs) == 0 and len(self.mems) == 0 and len(self.regfiles) == 0:

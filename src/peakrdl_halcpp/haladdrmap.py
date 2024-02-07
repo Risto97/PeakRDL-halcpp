@@ -2,7 +2,32 @@ from systemrdl.node import Node, AddrmapNode, RegNode, RootNode, MemNode, FieldN
 from typing import List, Dict
 
 class HalBase: # TODO make abstract
-    def __init__(self, 
+    """
+    HakBase is the HAL base class for all the different nodes
+    (Addrmap, Reg, Mem, and Field).
+
+    Methods
+    -------
+    get_docstring(node : Node, parent : 'HalBase|None') -> str
+        Converts the node description into a C++ multi-line comment.
+    cpp_access_type() -> str:
+        Returns the node access type and must be overloaded by
+        the child class.
+    get_template_line() - str:
+        Returns the node C++ template line
+    get_cls_tmpl_spec(just_tmpl=False) -> str:
+        TBD
+
+    type_name() -> str:
+        TBD
+    addr_offset() -> int:
+        TBD
+    orig_type_name() -> str:
+        TBD
+    get_parent_haladdrmap() -> HalAddrmap:
+        TBD
+    """
+    def __init__(self,
                  node : Node,
                  parent : 'HalBase|None',
                  ):
@@ -14,19 +39,20 @@ class HalBase: # TODO make abstract
         if self.node.get_property('desc') is not None:
             for l in self.node.get_property('desc').splitlines():
                 desc = desc + "* " + l + "\n"
+            print(desc + "*/")
             return desc + "*/"
         return  ""
 
     @property
-    def cpp_type(self) -> str:
+    def cpp_access_type(self) -> str:
         raise NotImplementedError("You need to overload this method in inherited class")
 
-    def get_template_line(self):
+    def get_template_line(self) -> str:
         raise NotImplementedError("You need to overload this method in inherited class")
 
     def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
         raise NotImplementedError("You need to overload this method in inherited class")
-    
+
     @property
     def type_name(self) -> str:
         return self.orig_type_name
@@ -48,10 +74,10 @@ class HalBase: # TODO make abstract
             return self.parent
         assert self.parent is not None
         return self.parent.get_parent_haladdrmap()
-        
+
 class HalField(HalBase):
 
-    def __init__(self, 
+    def __init__(self,
                  node: FieldNode,
                  parent : 'HalReg',
                  ):
@@ -86,7 +112,7 @@ class HalField(HalBase):
 
             namespace_enums[name] = [enum_strings, enum_values, enum_desc, const_width, self.node.owning_addrmap]
             return True, name, enum_strings, enum_values, enum_desc, const_width
-        
+
         return False, None, None, None, None, None
 
     def get_enum_name(self):
@@ -98,7 +124,7 @@ class HalField(HalBase):
         return self.get_parent_haladdrmap().enums
 
     @property
-    def cpp_type(self) -> str:
+    def cpp_access_type(self) -> str:
         out = ""
         if self.node.is_sw_readable and self.node.is_sw_writable:
             return "FieldRW"
@@ -115,8 +141,8 @@ class HalField(HalBase):
         assert False, "You should not extend FieldNode classes"
 
 class HalReg(HalBase):
-    
-    def __init__(self, 
+
+    def __init__(self,
                  node : RegNode,
                  parent : 'HalAddrmap|HalRegfile',
                  bus_offset : int = 0,
@@ -127,7 +153,7 @@ class HalReg(HalBase):
         self.bus_offset = bus_offset
 
         self.fields = self.get_fields()
-    
+
     @property # TODO move to base?
     def is_array(self) -> bool:
         return self.node.is_array
@@ -140,7 +166,7 @@ class HalReg(HalBase):
         return [HalField(c, self) for c in self.node.children() if isinstance(c, FieldNode)]
 
     @property
-    def cpp_type(self):
+    def cpp_access_type(self):
         if self.node.has_sw_readable and self.node.has_sw_writable:
             return "RegRW"
         elif self.node.has_sw_writable and not self.node.has_sw_readable:
@@ -162,7 +188,7 @@ class HalReg(HalBase):
 
 
 class HalArrReg(HalReg):
-    def __init__(self, 
+    def __init__(self,
                  node : RegNode,
                  parent : 'HalAddrmap|HalRegfile',
                  bus_offset : int = 0,
@@ -181,8 +207,8 @@ class HalArrReg(HalReg):
 
 
 class HalMem(HalBase):
-    
-    def __init__(self, 
+
+    def __init__(self,
                  node : MemNode,
                  parent : 'HalAddrmap',
                  bus_offset : int = 0,
@@ -208,8 +234,8 @@ class HalMem(HalBase):
         return f"template<uint32_t BASE, uint32_t SIZE, typename PARENT_TYPE>"
 
     @property
-    def cpp_type(self) -> str:
-        assert False, "cpp_type should not be called on HalMem class"
+    def cpp_access_type(self) -> str:
+        assert False, "cpp_access_type should not be called on HalMem class"
 
     def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
         str = self.type_name.upper() if not just_tmpl else ""
@@ -224,8 +250,8 @@ class HalMem(HalBase):
         return self.bus_offset + self.node.address_offset
 
 class HalRegfile(HalBase):
-    
-    def __init__(self, 
+
+    def __init__(self,
                  node : RegfileNode,
                  parent : 'HalAddrmap',
                  bus_offset : int = 0,
@@ -237,7 +263,7 @@ class HalRegfile(HalBase):
 
         self.regs = self.get_regs()
         self.regfiles = self.get_regfiles()
-    
+
     @property # TODO move to base?
     def is_array(self) -> bool:
         return self.node.is_array
@@ -253,7 +279,7 @@ class HalRegfile(HalBase):
         return [HalRegfile(c, self) for c in self.node.children() if isinstance(c, RegfileNode)]
 
     @property
-    def cpp_type(self):
+    def cpp_access_type(self):
         return "RegfileNode"
 
     def get_template_line(self) -> str:
@@ -268,7 +294,7 @@ class HalRegfile(HalBase):
         return self.bus_offset + next(self.node.unrolled()).address_offset # type: ignore
 
 class HalArrRegfile(HalRegfile):
-    def __init__(self, 
+    def __init__(self,
                  node : RegfileNode,
                  parent : 'HalAddrmap|HalRegfile',
                  bus_offset : int = 0,
@@ -288,6 +314,13 @@ class HalArrRegfile(HalRegfile):
 
 
 class HalAddrmap(HalBase):
+    """
+    TBD
+
+    Methods
+    -------
+    TBD
+    """
     def __init__(self,
             node : AddrmapNode,
             parent : 'HalAddrmap|None' = None,
@@ -298,13 +331,14 @@ class HalAddrmap(HalBase):
         self.parent = parent
         self.bus_offset = bus_offset
 
+        # Check that top level HAL has no parent but RootNode
         assert (self.parent == None) == isinstance(self.node.parent, RootNode)
 
         self.regs = self.get_regs()
         self.mems = self.get_mems()
         self.addrmaps = self.get_addrmaps()
         self.regfiles = self.get_regfiles()
-        
+
 
 
         self.enums = {}
@@ -346,7 +380,7 @@ class HalAddrmap(HalBase):
                     subc.parent = self
                 remove_list.append(c)
                 self.addrmaps.extend(c.addrmaps) # Steal all addrmaps from a bus
-                
+
         [self.addrmaps.remove(c) for c in remove_list]
 
     def is_bus(self) -> bool:
@@ -364,7 +398,7 @@ class HalAddrmap(HalBase):
         if self.is_root_node:
             return "template <uint32_t BASE, typename PARENT_TYPE=void>"
         return "template <uint32_t BASE, typename PARENT_TYPE>"
-    
+
     @property
     def type_name(self) -> str:
         return self.orig_type_name + "_hal"

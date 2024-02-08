@@ -33,8 +33,15 @@ release = '0.0.1'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon'
+    'sphinx.ext.napoleon',
+    'sphinx.ext.inheritance_diagram',
 ]
+
+inheritance_node_attrs = dict(
+    color='"#6AB0DE"',
+    fillcolor='"#E7F2FA"',
+    style='"rounded, filled"'
+)
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

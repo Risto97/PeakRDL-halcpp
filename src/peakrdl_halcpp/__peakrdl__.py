@@ -10,16 +10,13 @@ if TYPE_CHECKING:
 
 
 class Exporter(ExporterSubcommandPlugin):
-    """
-    Generic PeakRDL template class for plugin creation.
-    """
-    short_desc = "Generate CPP Hardware Abstraction Layer libraries"
-    long_desc = "Generate CPP Hardware Abstraction Layer libraries"
+    """Generates C++ Hardware Abstraction Layer (HAL) libraries."""
+
+    short_desc = 'Generates C++ Hardware Abstraction Layer (HAL) libraries.'
+    long_desc = 'Generates C++ Hardware Abstraction Layer (HAL) libraries.'
 
     def add_exporter_arguments(self, arg_group: 'argparse.ArgumentParser') -> None:
-        """
-        Adds custom arguments to the plugin.
-        """
+        """Adds custom arguments to the plugin."""
         arg_group.add_argument(
             "--ext",
             nargs="*",
@@ -47,14 +44,12 @@ class Exporter(ExporterSubcommandPlugin):
         )
 
     def do_export(self, top_node: 'AddrmapNode', options: 'argparse.Namespace') -> None:
-        """
-        Plugin entry function.
-        """
+        """Plugin entry function."""
         hal = HalExporter()
         hal.export(
             node=top_node,
             outdir=options.output,
             list_files=options.list_files,
-            ext=options.ext,
+            ext_modules=options.ext,
             keep_buses=options.keep_buses,
         )

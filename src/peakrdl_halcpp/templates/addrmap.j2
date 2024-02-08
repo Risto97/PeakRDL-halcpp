@@ -34,10 +34,10 @@ public:
     using TYPE = {{ r.get_cls_tmpl_spec() }};
 
 {% for f in r.fields %}
-    static halcpp::{{ f.cpp_type }}<{{ f.node.low }}, {{ f.node.high }}, TYPE> {{ f.node.inst_name }};
+    static halcpp::{{ f.cpp_type }}<{{ f._node.low }}, {{ f._node.high }}, TYPE> {{ f._node.inst_name }};
 {% endfor %}
 
-{% if r.node.has_sw_writable %}
+{% if r._node.has_sw_writable %}
     using halcpp::{{ r.cpp_type }}{{ r.get_cls_tmpl_spec(True) }}::operator=;
 
 {% endif %}
@@ -56,7 +56,7 @@ public:
     {% if c.__class__.__name__ == "HalRegfile" %}
         {{ assert("Regfile inside Regfile Not supported yet") }}
     {% else %}
-    static {{ c.type_name|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, TYPE> {{ c.node.inst_name }};
+    static {{ c.type_name|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, TYPE> {{ c._node.inst_name }};
     {% endif %}
 {% endfor %}
 
@@ -79,15 +79,15 @@ public:
 
 {% for c in halnode.addrmaps + halnode.regs + halnode.mems + halnode.regfiles %}
     {% if c.__class__.__name__ == "HalArrReg" %}
-    static halcpp::RegArrayNode<{{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}, 0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, {{ c.node.array_stride }}, TYPE , {{ c.node.array_dimensions|join(', ') }}> {{ c.node.inst_name }};
+    static halcpp::RegArrayNode<{{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}, 0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, {{ c._node.array_stride }}, TYPE , {{ c._node.array_dimensions|join(', ') }}> {{ c._node.inst_name }};
     {% elif c.__class__.__name__ == "HalReg" or c.__class__.__name__ == "HalMem" %}
-    static {{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, TYPE> {{ c.node.inst_name }};
+    static {{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.width }}, TYPE> {{ c._node.inst_name }};
     {% elif c.__class__.__name__ == "HalArrRegfile" %}
-    static halcpp::RegfileArrayNode<{{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}, 0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c.node.array_stride }}, TYPE , {{ c.node.array_dimensions|join(', ') }}> {{ c.node.inst_name }};
+    static halcpp::RegfileArrayNode<{{ halnode.orig_type_name }}_nm::{{ c.type_name|upper }}, 0x{{ "%0x"|format(c.addr_offset|int) }}, {{ c._node.array_stride }}, TYPE , {{ c._node.array_dimensions|join(', ') }}> {{ c._node.inst_name }};
     {% elif c.__class__.__name__ == "HalRegfile" %}
-    static {{ halnode.orig_type_name }}_nm::{{ halutils.get_extern(c)|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, TYPE> {{ c.node.inst_name }};
+    static {{ halnode.orig_type_name }}_nm::{{ halutils.get_extern(c)|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, TYPE> {{ c._node.inst_name }};
     {% else %}
-    static {{ halutils.get_extern(c)|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, TYPE> {{ c.node.inst_name }};
+    static {{ halutils.get_extern(c)|upper }}<0x{{ "%0x"|format(c.addr_offset|int) }}, TYPE> {{ c._node.inst_name }};
     {% endif %}
 {% endfor %}
 

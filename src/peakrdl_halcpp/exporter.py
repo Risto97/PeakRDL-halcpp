@@ -1,39 +1,34 @@
 import os
-from typing import TYPE_CHECKING
+from typing import Union, Any, List, Dict
 import shutil
 
 import jinja2 as jj
-from systemrdl.node import Node, RootNode, AddrmapNode
+from systemrdl.node import RootNode, AddrmapNode
 
 from .haladdrmap import *
 from .halutils import HalUtils
 
-# Import the different types if checking is activated
-if TYPE_CHECKING:
-    from typing import Union, Any, List, str, bool, Dict
-
 
 class HalExporter():
-    """This method will be used to add two numbers
+    """HAL C++ PeakRDL plugin top class to generate the C++ HAL from SystemRDL.
 
-        :param int num1: The first number
-        :param int num2: The second number
+    Class methods:
 
-        :returns: The sum of two numbers
-
-        :rtype: int
+    - :func:`list_files`
+    - :func:`copy_base_headers`
+    - :func:`export`
+    - :func:`process_template`
     """
 
-
-    def __init__(self, **kwargs: 'Any'):
+    def __init__(self, **kwargs: Any):
         # Check for stray kwargs
         if kwargs:
             raise TypeError("got an unexpected keyword argument '%s'" %
                             list(kwargs.keys())[0])
 
-        # Include files generated output directory
+        #: HAL C++ copied header library location within the generated files output directory
         self.cpp_dir = "include"
-        # HAL C++ base headers list (copied into cpp_dir)
+        #: HAL C++ headers list (copied into :attr:`~cpp_dir`)
         self.base_headers = [
             "halcpp_base.h",
             "halcpp_utils.h",
@@ -46,15 +41,14 @@ class HalExporter():
         ]
 
     def list_files(self, top: HalAddrmap, outdir: str):
-        """
-        Prints the generated files to stdout (without generating the files).
+        """Prints the generated files to stdout (without generating the files).
 
         Parameters
         ----------
         top: HalAddrmap
             Top level HalAddrmap object.
         outdir: str
-            Output directory to which the generated files would be put.
+            Output directory in which the output files are generated.
         """
         gen_files = [os.path.join(outdir, addrmap.type_name + ".h")
                      for addrmap in top.get_addrmaps_recursive()]
@@ -65,14 +59,13 @@ class HalExporter():
         print(*out_files, sep="\n")
 
     def copy_base_headers(self, outdir: str):
-        """
-        Copies the HAL base headers to the generated HAL files location given
-        by outdir.
+        """Copies the HAL C++ headers to the generated files location given
+        by the outdir parameter.
 
         Parameters
         ----------
         outdir: str
-            Output directory to which the generated files would be put.
+            Output directory in which the output files are generated.
         """
         abspaths = [os.path.join(os.path.dirname(
             __file__), self.cpp_dir, x) for x in self.base_headers]
@@ -81,30 +74,40 @@ class HalExporter():
             os.makedirs(outdir)
         [shutil.copy(x, outdir) for x in abspaths]
 
-    def export(self, node: 'Union[AddrmapNode, RootNode]', outdir: str, list_files: bool = False, ext: List = [], keep_buses: bool = False) -> None:
-        """
-        Plugin exporter main function.
+    def export(self,
+               node: 'AddrmapNode',
+               outdir: str,
+               list_files: bool = False,
+               ext_modules: List = [str],
+               keep_buses: bool = False
+               ) -> None:
+        """Entry function called of the PeakRDL-halcpp plugin.
 
         Parameters
         ----------
-        nodes: Union[Node, List[Node]]
+        node: AddrmapNode
+            Top AddrmapNode of the SystemRDL description.
         outdir: str
-        list_files: bool=False
-        ext: list=[]
-        keep_buses: bool=False
+            Output directory in which the output files are generated.
+        list_files: bool = False
+            Don't generate but print the files that would be generated.
+        ext_modules: List[str]
+            List of modules (i.e., SystemRDL addrmap objects) with extended functionalities.
+        keep_buses: bool = False
+            TBD
         """
 
-        # print("+++++++++++DEBUG+++++++++++++++")
-        # print(f'Node type: {type(node)}')
-        # print(f'Node: {node}')
-        # print(f'Node address offset: {node.inst.addr_offset}')
-        # print(f'Node original type name: {node.orig_type_name}')
-        # desc = "/*\n"
-        # if node.get_property('desc') is not None:
-        #     for l in node.get_property('desc').splitlines():
-        #         desc = desc + "* " + l + "\n"
-        # print(f'Node description:\n{desc}*/')
-        # print("+++++++++++++++++++++++++++++++")
+        print("+++++++++++DEBUG+++++++++++++++")
+        print(f'Node type: {type(node)}')
+        print(f'Node: {node}')
+        print(f'Node address offset: {node.inst.addr_offset}')
+        print(f'Node original type name: {node.orig_type_name}')
+        desc = "/*\n"
+        if node.get_property('desc') is not None:
+            for l in node.get_property('desc').splitlines():
+                desc = desc + "* " + l + "\n"
+        print(f'Node description:\n{desc}*/')
+        print("+++++++++++++++++++++++++++++++")
 
         # If it is the root node, skip to top addrmap
         if isinstance(node, RootNode):
@@ -114,11 +117,10 @@ class HalExporter():
             raise TypeError(
                 "'node' argument expects type AddrmapNode. Got '%s'" % type(node).__name__)
 
-        halutils = HalUtils(ext)
+        halutils = HalUtils(ext_modules)
 
         top = halutils.build_hierarchy(
             node=node,
-            remove_root=False,  # TODO fix
             keep_buses=keep_buses,
         )
 
@@ -144,6 +146,15 @@ class HalExporter():
             self.copy_base_headers(outdir)
 
     def process_template(self, context: Dict) -> str:
+        """
+        _summary_
+
+        Args:
+            context (Dict): _description_
+
+        Returns:
+            str: _description_
+        """
 
         env = jj.Environment(
             loader=jj.FileSystemLoader(

@@ -2,7 +2,8 @@ from typing import List
 import getpass
 import datetime
 
-from .haladdrmap import *
+from .halbase import HalBase
+from .haladdrmap import HalAddrmap
 
 
 class HalUtils():
@@ -39,8 +40,7 @@ class HalUtils():
         return halnode.orig_type_name + "_ext.h" if has_extern else halnode.type_name + ".h"
 
     def has_extern(self, halnode: HalAddrmap) -> bool:
-        """Returns True if the HAL node is listed as having extended functionalities.
-        """
+        """Returns True if the HAL node is listed as having extended functionalities."""
         if self.ext_modules is not None:
             if halnode.orig_type_name in self.ext_modules:
                 return True
@@ -65,7 +65,8 @@ class HalUtils():
     def get_unique_type_nodes(self, lst: List[HalBase]):
         return list({node.type_name: node for node in lst}.values())
 
-    def generate_file_header(self):
+    def generate_file_header(self) -> str:
+        """Returns file header for generated files."""
         username = getpass.getuser()
         current_datetime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         comment = f"// Generated with PeakRD-halcpp : https://github.com/Risto97/PeakRDL-halcpp\n"
@@ -73,7 +74,7 @@ class HalUtils():
         return comment
 
     def build_hierarchy(self, node: AddrmapNode, keep_buses: bool = False) -> HalAddrmap:
-        """Build the hierachy using the HAL wrapper classes around PeakRDL
+        """Build the hierarchy using the HAL wrapper classes around PeakRDL
         nodes (e.g., AddrmapNodes, RegNodes)
 
         Parameters

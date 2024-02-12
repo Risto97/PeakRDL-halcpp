@@ -5,7 +5,7 @@ import shutil
 import jinja2 as jj
 from systemrdl.node import RootNode, AddrmapNode
 
-from .haladdrmap import *
+from .haladdrmap import HalAddrmap
 from .halutils import HalUtils
 
 
@@ -119,13 +119,15 @@ class HalExporter():
 
         halutils = HalUtils(ext_modules)
 
-        # Build the hierachy using the HAL wrapper classes around PeakRDL nodes (e.g., AddrmapNodes, RegNodes)
+        # Build the hierachy using the HAL wrapper classes around PeakRDL
+        # nodes (e.g., AddrmapNodes, RegNodes)
         top = halutils.build_hierarchy(
             node=node,
             keep_buses=keep_buses,
         )
 
         if list_files:
+            # Only print the files that would be generated
             self.list_files(top, outdir)
         else:
             # Create the output directory for the generated files
@@ -134,39 +136,50 @@ class HalExporter():
             except FileExistsError:
                 pass
 
+            # Iterate over all the HalAddrmap objects
             for halnode in top.get_addrmaps_recursive():
+                # Create a dictionary with the current HalAddrmap and
+                # the halutils objects
                 context = {
                     'halnode': halnode,
                     'halutils': halutils,
                 }
+                # The next lines generate the C++ header file for the
+                # HalAddrmap node using a jinja2 template.
                 text = self.process_template(context)
                 out_file = os.path.join(outdir, halnode.type_name + ".h")
                 with open(out_file, 'w') as f:
                     f.write(text)
-
+            # Copy the base header files (fixed code) to the output directory
             self.copy_base_headers(outdir)
 
     def process_template(self, context: Dict) -> str:
+        """Generates a C++ header file based on a given HalAddrmap node and
+        a C++ header file jinja2 template.
+
+        Parameters
+        ----------
+        context: Dict
+            Dictionary containing a HalAddrmap node and the HalUtils object
+            passed to the jinja2 env
+
+        Returns
+        -------
+        str
+            Text of the generated C++ header for a given HalAddrmap node.
         """
-        _summary_
-
-        Args:
-            context (Dict): _description_
-
-        Returns:
-            str: _description_
-        """
-
+        # Create a jinja2 env with the template(s) contained in the templates
+        # folder located in the same directory than this file
         env = jj.Environment(
             loader=jj.FileSystemLoader(
                 '%s/templates/' % os.path.dirname(__file__)),
             trim_blocks=True,
             lstrip_blocks=True)
-
-        # Benoit: what does it do?
+        # Add the base zip function to the env
         env.filters.update({
             'zip': zip,
         })
-
-        res = env.get_template("addrmap.j2").render(context)
-        return res
+        # Render the C++ header text using the jinja2 template and the
+        # specific context
+        cpp_header_text = env.get_template("addrmap.j2").render(context)
+        return cpp_header_text

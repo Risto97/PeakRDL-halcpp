@@ -4,5 +4,5 @@ from a SystemRDL addrmap object
 
 List of files:
 --------------
-addrmap.j2
+- addrmap.j2
 """

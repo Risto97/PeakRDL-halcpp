@@ -1,9 +1,11 @@
-from typing import List
+from typing import TYPE_CHECKING
 
 from systemrdl.node import MemNode, AddressableNode
 
 from .halbase import HalBase
-from .haladdrmap import HalAddrmap
+
+if TYPE_CHECKING:
+    from .haladdrmap import HalAddrmap
 
 
 class HalMem(HalBase):
@@ -18,9 +20,14 @@ class HalMem(HalBase):
 
         self.bus_offset = bus_offset
 
-        for c in self._parent.node.children():
-            if isinstance(c, AddressableNode):
-                assert c == self._node, f"Addrmaps with anything else than one memory node is currently not allowed, it could be easily added"
+        parent_node = self.get_parent()
+
+        if parent_node is not None:
+            for c in parent_node._node.children():
+                if isinstance(c, AddressableNode):
+                    assert c == self._node, f"Addrmaps with anything else than \
+                                            one memory node is currently not allowed, \
+                                            it could be easily added"
 
     @property
     def size(self) -> int:
@@ -43,7 +50,8 @@ class HalMem(HalBase):
 
     @property
     def type_name(self) -> str:
-        return self._parent.orig_type_name
+        parent_node = self.get_parent()
+        return parent_node.orig_type_name # type: ignore
 
     @property
     def addr_offset(self) -> int:

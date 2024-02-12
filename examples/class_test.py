@@ -8,6 +8,8 @@ class DerivedClass(BaseClass):
         super().__init__()
         self.my_var2 = 3
 
+        self.mydict = {}
+
     def print_vars(self):
         print(self.my_var0)
         print(self.my_var1)
@@ -44,3 +46,9 @@ DerivedClass0.print_vars()
 # AbstracClass0 = MyBaseClassAbstract()
 AbstracClass1 = DerivedClassAbstract()
 AbstracClass1.print_vars()
+
+classdict = DerivedClass0.mydict
+
+classdict['myentry'] = 'myvalue'
+
+print(DerivedClass0.mydict)

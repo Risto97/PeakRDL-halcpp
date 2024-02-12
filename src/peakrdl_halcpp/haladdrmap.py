@@ -39,8 +39,8 @@ class HalAddrmap(HalBase):
         self.mems = self.get_mems()
         # AddrMapNode -> HalAddrMap
         self.addrmaps = self.get_addrmaps()
-
-        self.enums = {}
+        # This will be populated when the HAL file is generated
+        self.enums = {}  # type: ignore
 
     @property
     def is_top_node(self) -> bool:
@@ -53,7 +53,7 @@ class HalAddrmap(HalBase):
         """
         return self._parent == None
 
-    def get_regs(self) -> 'List[HalReg]':
+    def get_regs(self) -> List[HalReg]:
         """Traverses the node hierarchy and extracts the RegNodes and the
         array of RegNodes.
 
@@ -69,7 +69,7 @@ class HalAddrmap(HalBase):
                 regs.append(reg)
         return regs
 
-    def get_mems(self) -> 'List[HalMem]':
+    def get_mems(self) -> List[HalMem]:
         """Traverses the node hierarchy and extracts the MemNodes.
 
         Returns
@@ -79,7 +79,7 @@ class HalAddrmap(HalBase):
         """
         return [HalMem(c, self) for c in self._node.children() if isinstance(c, MemNode)]
 
-    def get_addrmaps(self) -> 'List[HalAddrmap]':
+    def get_addrmaps(self) -> List[HalAddrmap]:
         """Traverses the node hierarchy and extracts the AddrmapNode.
 
         Returns
@@ -89,7 +89,7 @@ class HalAddrmap(HalBase):
         """
         return [HalAddrmap(c, self) for c in self._node.children() if isinstance(c, AddrmapNode)]
 
-    def get_regfiles(self) -> 'List[HalRegfile]':
+    def get_regfiles(self) -> List[HalRegfile]:
         """Traverses the node hierarchy and extracts the RegfileNodes and the
         array of RegfileNodes.
 
@@ -98,12 +98,16 @@ class HalAddrmap(HalBase):
         List[HalRegfile]
             List of RegfileNode objects each encapsulated in a HalRegfile (or HalArrRegfile) object.
         """
-        regfiles = []
+        regfiles: List[HalRegfile] = []
         for c in self._node.children():
             if isinstance(c, RegfileNode):
-                regfile = HalArrRegfile(
-                    c, self) if c.is_array else HalRegfile(c, self)
+                if c.is_array:
+                    regfile = HalArrRegfile(c, self)
+                else:
+                    regfile = HalRegfile(c, self)  # type: ignore
+
                 regfiles.append(regfile)
+
         return regfiles
 
     def remove_buses(self):
@@ -140,7 +144,7 @@ class HalAddrmap(HalBase):
             return True
         return False
 
-    def get_regfiles_regs(self) -> 'List[HalReg]':
+    def get_regfiles_regs(self) -> List[HalReg]:
         """Extracts the registers from the regfiles.
 
         Returns
@@ -154,7 +158,7 @@ class HalAddrmap(HalBase):
         return regs
 
     def get_template_line(self) -> str:
-        """Returns the HAL template for AddrmapNode.
+        """Returns the HAL C++ template for AddrmapNode.
 
         Returns
         -------

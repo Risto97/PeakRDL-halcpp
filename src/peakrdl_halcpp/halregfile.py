@@ -1,10 +1,12 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from systemrdl.node import RegNode, RegfileNode
 
 from .halbase import HalBase
-from .halreg import HalReg
-from .haladdrmap import HalAddrmap
+
+if TYPE_CHECKING:
+    from .halreg import HalReg
+    from .haladdrmap import HalAddrmap
 
 
 class HalRegfile(HalBase):
@@ -33,7 +35,11 @@ class HalRegfile(HalBase):
         return [HalReg(c, self) for c in self._node.children() if isinstance(c, RegNode)]
 
     def get_regfiles(self) -> 'List[HalRegfile]':
-        return [HalRegfile(c, self) for c in self._node.children() if isinstance(c, RegfileNode)]
+        regfiles_list = []
+        for c in self._node.children():
+            if isinstance(c, RegfileNode):
+                regfiles_list.append(HalRegfile(c, self)) # type: ignore
+        return regfiles_list
 
     @property
     def cpp_access_type(self):
@@ -48,7 +54,6 @@ class HalRegfile(HalBase):
 
     @property
     def addr_offset(self) -> int:
-        # type: ignore
         return self.bus_offset + next(self._node.unrolled()).address_offset
 
 
@@ -57,7 +62,7 @@ class HalArrRegfile(HalRegfile):
 
     def __init__(self,
                  node: RegfileNode,
-                 parent: 'HalAddrmap|HalRegfile',
+                 parent: 'HalAddrmap',
                  bus_offset: int = 0,
                  ):
         super().__init__(node, parent)
@@ -66,9 +71,11 @@ class HalArrRegfile(HalRegfile):
 
         assert node.is_array, "Register File Node is not array"
 
-        assert self._node.size == self._node.array_stride, f"Different stride than regwidth is not supported {self._node.size} {self._node.array_stride}"
+        assert self._node.size == self._node.array_stride, f"Different stride than \
+                                                            regwidth is not supported \
+                                                            {self._node.size} \
+                                                            {self._node.array_stride}"
 
     @property
     def addr_offset(self):
-        # type: ignore
         return self.bus_offset + next(self._node.unrolled()).address_offset

@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Any
 from abc import ABC, abstractmethod, abstractproperty
 
 from systemrdl.node import Node
@@ -39,11 +39,13 @@ class HalBase(ABC):
             return desc + "*/"
         return ""
 
-    def get_parent_haladdrmap(self) -> 'HalAddrmap':
-        if isinstance(self._parent, HalAddrmap):
-            return self._parent
-        assert self._parent is not None
-        return self._parent.get_parent_haladdrmap()
+    def get_property(self, prop_name: str) -> Any:
+        """Returns the SystemRDL node property."""
+        return self._node.get_property(prop_name)
+
+    def get_parent(self) -> Union['HalBase', None]:
+        """Returns this node parent."""
+        return self._parent
 
     @property
     def orig_type_name(self) -> str:

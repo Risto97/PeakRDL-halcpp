@@ -1,12 +1,13 @@
-from systemrdl.node import AddrmapNode, RegNode, RootNode, MemNode, FieldNode, AddressableNode, RegfileNode
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from systemrdl.node import RegNode, FieldNode
 
 from .halbase import HalBase
 from .halfield import HalField
 from .halregfile import HalRegfile
-from .haladdrmap import HalAddrmap
+
+if TYPE_CHECKING:
+    from .haladdrmap import HalAddrmap
 
 
 class HalReg(HalBase):
@@ -28,7 +29,7 @@ class HalReg(HalBase):
 
     @property
     def width(self) -> int:
-        return max([c.node.high for c in self.fields]) + 1
+        return max([c._node.high for c in self.fields]) + 1
 
     def get_fields(self) -> 'List[HalField]':
         return [HalField(c, self) for c in self._node.children() if isinstance(c, FieldNode)]
@@ -73,5 +74,4 @@ class HalArrReg(HalReg):
 
     @property
     def addr_offset(self):
-        # type: ignore
         return self.bus_offset + next(self._node.unrolled()).address_offset

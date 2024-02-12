@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, List
 from systemrdl.node import RegNode, RegfileNode
 
 from .halbase import HalBase
+from .halreg import HalReg
 
 if TYPE_CHECKING:
-    from .halreg import HalReg
     from .haladdrmap import HalAddrmap
 
 
@@ -31,10 +31,10 @@ class HalRegfile(HalBase):
     # def width(self) -> int:
     #     return max([c.node.high for c in self.]) + 1
 
-    def get_regs(self) -> 'List[HalReg]':
+    def get_regs(self) -> List[HalReg]:
         return [HalReg(c, self) for c in self._node.children() if isinstance(c, RegNode)]
 
-    def get_regfiles(self) -> 'List[HalRegfile]':
+    def get_regfiles(self) -> List['HalRegfile']:
         regfiles_list = []
         for c in self._node.children():
             if isinstance(c, RegfileNode):

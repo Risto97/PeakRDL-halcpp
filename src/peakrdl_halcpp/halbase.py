@@ -7,8 +7,12 @@ from systemrdl.node import Node
 class HalBase(ABC):
     """Base abstract class for all the different HAL nodes (Addrmap, Reg, Mem, and Field).
 
-    .. inheritance-diagram:: peakrdl_halcpp.haladdrmap
-        :top-classes: peakrdl_halcpp.haladdrmap.HalBase
+    .. inheritance-diagram:: peakrdl_halcpp.haladdrmap.HalAddrmap
+                             peakrdl_halcpp.halreg.HalReg
+                             peakrdl_halcpp.halmem.HalMem
+                             peakrdl_halcpp.halfield.HalField
+                             peakrdl_halcpp.halregfile.HalRegfile
+        :top-classes: peakrdl_halcpp.halbase.HalBase
         :parts: 1
 
     Class methods:
@@ -22,30 +26,6 @@ class HalBase(ABC):
     def __init__(self, node: Node, parent: Union['HalBase', None]):
         self._node = node
         self._parent = parent
-
-    def get_docstring(self) -> str:
-        """Converts the node description into a C++ multi-line comment.
-
-        Returns
-        -------
-        str
-            C++ multi-line comment string.
-        """
-        desc = "/*\n"
-        if self._node.get_property('desc') is not None:
-            for l in self._node.get_property('desc').splitlines():
-                desc = desc + "* " + l + "\n"
-            print(desc + "*/")
-            return desc + "*/"
-        return ""
-
-    def get_property(self, prop_name: str) -> Any:
-        """Returns the SystemRDL node property."""
-        return self._node.get_property(prop_name)
-
-    def get_parent(self) -> Union['HalBase', None]:
-        """Returns this node parent."""
-        return self._parent
 
     @property
     def orig_type_name(self) -> str:
@@ -84,6 +64,30 @@ class HalBase(ABC):
             would return 'FieldRO'.
         """
         pass
+
+    def get_docstring(self) -> str:
+        """Converts the node description into a C++ multi-line comment.
+
+        Returns
+        -------
+        str
+            C++ multi-line comment string.
+        """
+        desc = "/*\n"
+        if self._node.get_property('desc') is not None:
+            for l in self._node.get_property('desc').splitlines():
+                desc = desc + "* " + l + "\n"
+            print(desc + "*/")
+            return desc + "*/"
+        return ""
+
+    def get_property(self, prop_name: str) -> Any:
+        """Returns the SystemRDL node property."""
+        return self._node.get_property(prop_name)
+
+    def get_parent(self) -> Union['HalBase', None]:
+        """Returns this node parent."""
+        return self._parent
 
     @abstractmethod
     def get_template_line(self) -> str:

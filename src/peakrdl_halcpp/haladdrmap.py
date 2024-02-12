@@ -12,8 +12,16 @@ class HalAddrmap(HalBase):
     """HAL wrapper class for PeakRDL AddrmapNode.
 
     Class methods:
-
-
+    - :func:`get_regs`
+    - :func:`get_mems`
+    - :func:`get_addrmaps`
+    - :func:`get_regfiles`
+    - :func:`remove_buses`
+    - :func:`is_bus`
+    - :func:`get_regfiles_regs`
+    - :func:`get_template_line`
+    - :func:`get_cls_tmpl_spec`
+    - :func:`get_addrmaps_recursive`
     """
 
     def __init__(self,
@@ -44,14 +52,22 @@ class HalAddrmap(HalBase):
 
     @property
     def is_top_node(self) -> bool:
-        """Check if this is the top node.
-
-        Returns
-        -------
-            bool
-                Returns True if the node is the top one (i.e., no parent).
-        """
+        """Check if this is the top node."""
         return self._parent == None
+
+    @property
+    def type_name(self) -> str:
+        """Return the node name with the '_hal' suffix"""
+        return self.orig_type_name + "_hal"
+
+    @property
+    def cpp_access_type(self) -> str:
+        assert False, "cpp_access_type not defined (is it needed?)"
+
+    @property
+    def addr_offset(self) -> int:
+        """Returns the node address offset relative to its parent."""
+        return self.bus_offset + self._node.address_offset
 
     def get_regs(self) -> List[HalReg]:
         """Traverses the node hierarchy and extracts the RegNodes and the
@@ -79,7 +95,7 @@ class HalAddrmap(HalBase):
         """
         return [HalMem(c, self) for c in self._node.children() if isinstance(c, MemNode)]
 
-    def get_addrmaps(self) -> List[HalAddrmap]:
+    def get_addrmaps(self) -> List['HalAddrmap']:
         """Traverses the node hierarchy and extracts the AddrmapNode.
 
         Returns
@@ -187,30 +203,23 @@ class HalAddrmap(HalBase):
             return str + "<BASE, PARENT_TYPE>"
         return str + "<BASE, PARENT_TYPE>"
 
-    @property
-    def type_name(self) -> str:
-        """Return the node name with the '_hal' suffix"""
-        return self.orig_type_name + "_hal"
-
-    @property
-    def cpp_access_type(self) -> str:
-        assert False, "cpp_access_type not defined (is it needed?)"
-
     def get_addrmaps_recursive(self) -> List['HalAddrmap']:
         """Recursively fetch the HalAddrmap nodes into a list.
 
         Gets the AddrMapNode hierarchy of the SystemRDL description.
         Here is a pseudo-SystemRDL code example for an basic SoC design.
 
-        addrmap mySoC {
-            addrmap myMem0 @ 0x40000000
-            addrmap mySubsystem @ 0x44000000 {
-                addrmap myPeriph0 @ 0x00001000
-                addrmap myPeriph1 @ 0x00002000
+        ::
+
+            addrmap mySoC {
+                addrmap myMem0 @ 0x40000000
+                addrmap mySubsystem @ 0x44000000 {
+                    addrmap myPeriph0 @ 0x00001000
+                    addrmap myPeriph1 @ 0x00002000
+                }
+                addrmap myMem1 @ 0x41000000
+                ...
             }
-            addrmap myMem1 @ 0x41000000
-            ...
-        }
 
         Called on the top node (i.e., mySoC) this function returns:
 
@@ -231,8 +240,3 @@ class HalAddrmap(HalBase):
         if self.is_top_node:
             addrmaps.insert(0, self)
         return addrmaps
-
-    @property
-    def addr_offset(self) -> int:
-        """Returns the node address offset relative to its parent."""
-        return self.bus_offset + self._node.address_offset

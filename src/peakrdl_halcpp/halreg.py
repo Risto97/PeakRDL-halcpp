@@ -4,9 +4,9 @@ from systemrdl.node import RegNode, FieldNode
 
 from .halbase import HalBase
 from .halfield import HalField
-from .halregfile import HalRegfile
 
 if TYPE_CHECKING:
+    from .halregfile import HalRegfile
     from .haladdrmap import HalAddrmap
 
 

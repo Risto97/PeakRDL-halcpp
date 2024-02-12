@@ -126,6 +126,16 @@ class HalExporter():
             keep_buses=keep_buses,
         )
 
+        print("+++++++++++DEBUG+++++++++++++++")
+        regnodes = halutils.get_unique_type_nodes(top.regs + top.get_regfiles_regs())
+        for reg in regnodes:
+            print(reg._node.inst_name)
+        print("NO UNIQUIFY")
+        regnodes = top.regs # + top.get_regfiles_regs()
+        for reg in regnodes:
+            print(reg._node.inst_name)
+        print("+++++++++++++++++++++++++++++++")
+
         if list_files:
             # Only print the files that would be generated
             self.list_files(top, outdir)

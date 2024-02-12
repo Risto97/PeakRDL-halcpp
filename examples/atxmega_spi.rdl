@@ -83,6 +83,30 @@ addrmap atxmega_spi {
 
     } DATA @ 0x3;
 
+    regfile {
+        reg {
+            name = "Test register";
+
+            field {
+                desc = "Test reg";
+            } TESTFIELD[7:0] = 0;
+        } TEST_REG0 @ 0x0;
+        reg {
+            name = "Test register";
+
+            field {
+                desc = "Test reg";
+            } TESTFIELD[7:0] = 0;
+        } TEST_REG1 @ 0x1;
+        reg {
+            name = "Test register";
+
+            field {
+                desc = "Test reg";
+            } TESTFIELD[7:0] = 0;
+        } TEST_REG2 @ 0x2;
+    } TEST_REGFILE @ 0x4;
+
     addrmap atxmega_test{
         name = "ATXMEGA test addrmap";
         desc = "Testing purpose";
@@ -98,7 +122,10 @@ addrmap atxmega_spi {
                 desc = "Test field";
             } TESTFIELD[7:0] = 0;
         } TEST_DATA @ 0x4;
-    } TEST_ADDRMAP @ 0x4;
+    } TEST_ADDRMAP @ 0x7;
+
+    myaddrmap myaddrmap0 @0xC;
+    myaddrmap myaddrmap1 @0xD;
 };
 
 addrmap common {

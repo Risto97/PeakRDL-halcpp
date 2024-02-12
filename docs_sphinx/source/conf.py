@@ -44,6 +44,8 @@ inheritance_node_attrs = dict(
     style='"rounded, filled"'
 )
 
+inheritance_graph_attrs = dict(rankdir="TB")
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 

@@ -65,18 +65,9 @@ class HalUtils():
         return halnode.type_name
 
     def get_unique_type_nodes(self, halnode_lst: List[HalBase]):
-        """Returns a list of names (str)
-
-        Parameters
-        ----------
-        halnode_lst: List[HalBase]
-            List of objects based on the HalBase abstract class.
-
-        Returns
-        -------
-        _type_
-            _description_
-        """
+        """Uniquify a python list?"""
+        # Is this really necessary? You cannot have two nodes with the same name at the
+        # same hierarchy level -> peakRDL throws an error
         return list({halnode.type_name: halnode for halnode in halnode_lst}.values())
 
     def generate_file_header(self) -> str:

@@ -18,7 +18,6 @@ mypy-extensions==1.0.0
 packaging==23.2
 peakrdl==1.1.0
 peakrdl-cheader==1.0.0
--e git+ssh://git@github.com/Risto97/PeakRDL-halcpp.git@f656230a801142801c6ffd5eea93551d1373ec4f#egg=peakrdl_halcpp
 peakrdl-html==2.10.1
 peakrdl-ipxact==3.4.3
 peakrdl-regblock==0.20.0

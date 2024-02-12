@@ -94,7 +94,7 @@ class HalExporter():
         ext_modules: List[str]
             List of modules (i.e., SystemRDL addrmap objects) with extended functionalities.
         keep_buses: bool = False
-            TBD
+            Keep AddrMapNodes containing only AddrMapNodes.
         """
 
         print("+++++++++++DEBUG+++++++++++++++")
@@ -119,6 +119,7 @@ class HalExporter():
 
         halutils = HalUtils(ext_modules)
 
+        # Build the hierachy using the HAL wrapper classes around PeakRDL nodes (e.g., AddrmapNodes, RegNodes)
         top = halutils.build_hierarchy(
             node=node,
             keep_buses=keep_buses,

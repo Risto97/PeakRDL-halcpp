@@ -122,7 +122,7 @@ class HalBase(ABC):
 
 
 class HalField(HalBase):
-    """HAL class for PeakRDL field node.
+    """HAL wrapper class for PeakRDL FieldNode.
 
     Class methods:
 
@@ -199,7 +199,7 @@ class HalField(HalBase):
 
 
 class HalReg(HalBase):
-    """HAL class for PeakRDL reg node."""
+    """HAL wrapper class for PeakRDL RegNode."""
 
     def __init__(self,
                  node: RegNode,
@@ -245,7 +245,7 @@ class HalReg(HalBase):
 
 
 class HalArrReg(HalReg):
-    """HAL class for PeakRDL array of reg node."""
+    """HAL wrapper class for PeakRDL array of RegNode."""
 
     def __init__(self,
                  node: RegNode,
@@ -267,7 +267,7 @@ class HalArrReg(HalReg):
 
 
 class HalMem(HalBase):
-    """HAL class for PeakRDL mem node."""
+    """HAL wrapper class for PeakRDL MemNode."""
 
     def __init__(self,
                  node: MemNode,
@@ -311,7 +311,7 @@ class HalMem(HalBase):
 
 
 class HalRegfile(HalBase):
-    """HAL class for PeakRDL regfile node."""
+    """HAL wrapper class for PeakRDL RegfileNode."""
 
     def __init__(self,
                  node: RegfileNode,
@@ -356,7 +356,7 @@ class HalRegfile(HalBase):
 
 
 class HalArrRegfile(HalRegfile):
-    """HAL class for PeakRDL array of regfile node."""
+    """HAL wrapper class for PeakRDL array of RegfileNode."""
 
     def __init__(self,
                  node: RegfileNode,
@@ -378,7 +378,7 @@ class HalArrRegfile(HalRegfile):
 
 
 class HalAddrmap(HalBase):
-    """HAL class for PeakRDL addrmap node.
+    """HAL wrapper class for PeakRDL AddrmapNode.
 
     Class methods:
 
@@ -411,7 +411,14 @@ class HalAddrmap(HalBase):
         self.enums = {}
 
     @property
-    def is_root_node(self) -> bool:
+    def is_top_node(self) -> bool:
+        """Check if this is the top node.
+
+        Returns
+        -------
+            bool
+                Returns True if the node is the top one (i.e., no parent).
+        """
         return self._parent == None
 
     def get_regs(self) -> 'List[HalReg]':
@@ -502,15 +509,46 @@ class HalAddrmap(HalBase):
         return False
 
     def get_regfiles_regs(self) -> 'List[HalReg]':
+        """Extracts the registers from the regfiles.
+
+        Returns
+        -------
+            List[HalReg]
+                List of registers (HalReg) contained in the node regfiles.
+        """        
         regs = []
         for regfile in self.regfiles:
             regs.extend(regfile.regs)
         return regs
 
     def get_template_line(self) -> str:
-        if self.is_root_node:
+        """Returns the HAL template for AddrmapNode.
+
+        Returns
+        -------
+            str
+                C++ template structure for AddrmapNode.
+        """
+        if self.is_top_node:
+            # Parent is set to void by default for the top node
             return "template <uint32_t BASE, typename PARENT_TYPE=void>"
         return "template <uint32_t BASE, typename PARENT_TYPE>"
+    
+    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
+        """Returns the HAL template parameters used for forwarding reference.
+
+        The structure must matched the template returned by :func:`get_template_line`.
+
+        Returns
+        -------
+            str
+                C++ template parameters.
+        """
+        str = self.type_name.upper() if not just_tmpl else ""
+
+        if self.is_top_node:
+            return str + "<BASE, PARENT_TYPE>"
+        return str + "<BASE, PARENT_TYPE>"
 
     @property
     def type_name(self) -> str:
@@ -518,20 +556,13 @@ class HalAddrmap(HalBase):
 
     @property
     def cpp_access_type(self) -> str:
-        assert False, "cpp_access_type not defined (is it needed)"
-
-    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
-        str = self.type_name.upper() if not just_tmpl else ""
-
-        if self.is_root_node:
-            return str + "<BASE, PARENT_TYPE>"
-        return str + "<BASE, PARENT_TYPE>"
+        assert False, "cpp_access_type not defined (is it needed?)"
 
     def get_addrmaps_recursive(self):
         addrmaps = self.addrmaps.copy()
         for c in self.addrmaps:
             addrmaps.extend(c.get_addrmaps_recursive())
-        if self.is_root_node:
+        if self.is_top_node:
             addrmaps.insert(0, self)
         return addrmaps
 

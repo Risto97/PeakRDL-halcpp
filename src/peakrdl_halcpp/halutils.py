@@ -73,19 +73,20 @@ class HalUtils():
         return comment
 
     def build_hierarchy(self, node: AddrmapNode, keep_buses: bool = False) -> HalAddrmap:
-        """_summary_
+        """Build the hierachy using the HAL wrapper classes around PeakRDL
+        nodes (e.g., AddrmapNodes, RegNodes)
 
         Parameters
         ----------
         node: AddrmapNode
-            _description_
+            Top level AddrmapNode of the SystemRDL description
         keep_buses: (bool, optional)
-            _description_. Defaults to False.
+            Keep AddrMapNodes containing only AddrMapNodes. Defaults to False.
 
         Returns
         -------
         HalAddrmap
-            _description_
+            HalAddrmap top class containing the HAL wrapper class hierarchy.
         """
 
         # Initialize the HAL top address map (i.e., no parent)

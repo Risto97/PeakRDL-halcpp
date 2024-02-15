@@ -91,17 +91,17 @@ class HalExporter():
             Keep AddrMapNodes containing only AddrMapNodes.
         """
 
-        print("+++++++++++DEBUG+++++++++++++++")
-        print(f'Node type: {type(node)}')
-        print(f'Node: {node}')
-        print(f'Node address offset: {node.inst.addr_offset}')
-        print(f'Node original type name: {node.orig_type_name}')
-        desc = "/*\n"
-        if node.get_property('desc') is not None:
-            for l in node.get_property('desc').splitlines():
-                desc = desc + "* " + l + "\n"
-        print(f'Node description:\n{desc}*/')
-        print("+++++++++++++++++++++++++++++++")
+        # print("+++++++++++DEBUG+++++++++++++++")
+        # print(f'Node type: {type(node)}')
+        # print(f'Node: {node}')
+        # print(f'Node address offset: {node.inst.addr_offset}')
+        # print(f'Node original type name: {node.orig_type_name}')
+        # desc = "/*\n"
+        # if node.get_property('desc') is not None:
+        #     for l in node.get_property('desc').splitlines():
+        #         desc = desc + "* " + l + "\n"
+        # print(f'Node description:\n{desc}*/')
+        # print("+++++++++++++++++++++++++++++++")
 
         # If it is the root node, skip to top addrmap
         if isinstance(node, RootNode):
@@ -113,22 +113,22 @@ class HalExporter():
 
         halutils = HalUtils(ext_modules)
 
-        # Build the hierachy using the HAL wrapper classes around PeakRDL
+        # Build the hierarchy using the HAL wrapper classes around PeakRDL
         # nodes (e.g., AddrmapNodes, RegNodes)
         top = halutils.build_hierarchy(
             node=node,
             keep_buses=keep_buses,
         )
 
-        print("+++++++++++DEBUG+++++++++++++++")
-        regnodes = halutils.get_unique_type_nodes(top.regs + top.get_regfiles_regs())
-        for reg in regnodes:
-            print(reg._node.inst_name)
-        print("\nNO UNIQUIFY:")
-        regnodes = top.regs + top.get_regfiles_regs()
-        for reg in regnodes:
-            print(reg._node.inst_name)
-        print("+++++++++++++++++++++++++++++++")
+        # print("+++++++++++DEBUG+++++++++++++++")
+        # regnodes = halutils.get_unique_type_nodes(top.regs + top.get_regfiles_regs())
+        # for reg in regnodes:
+        #     print(reg._node.inst_name)
+        # print("\nNO UNIQUIFY:")
+        # regnodes = top.regs + top.get_regfiles_regs()
+        # for reg in regnodes:
+        #     print(reg._node.inst_name)
+        # print("+++++++++++++++++++++++++++++++")
 
         if list_files:
             # Only print the files that would be generated

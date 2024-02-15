@@ -87,8 +87,14 @@ addrmap atxmega_spi {
         reg {
             name = "Test register";
 
+            enum reg0_e {
+                ZEROS = 8'h00 {desc="Register is zeros";};
+                ONES  = 8'hFF {desc="Register is ones";};
+            };
+
             field {
                 desc = "Test reg";
+                encode = reg0_e;
             } TESTFIELD[7:0] = 0;
         } TEST_REG0 @ 0x0;
         reg {
@@ -125,7 +131,6 @@ addrmap atxmega_spi {
     } TEST_ADDRMAP @ 0x7;
 
     myaddrmap myaddrmap0 @0xC;
-    myaddrmap myaddrmap1 @0xD;
 };
 
 addrmap common {

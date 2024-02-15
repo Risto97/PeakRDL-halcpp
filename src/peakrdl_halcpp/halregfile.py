@@ -23,14 +23,6 @@ class HalRegfile(HalBase):
         self.regs = self.get_regs()
         self.regfiles = self.get_regfiles()
 
-    @property  # TODO move to base?
-    def is_array(self) -> bool:
-        return self._node.is_array
-
-    # @property
-    # def width(self) -> int:
-    #     return max([c.node.high for c in self.]) + 1
-
     def get_regs(self) -> List[HalReg]:
         return [HalReg(c, self) for c in self._node.children() if isinstance(c, RegNode)]
 
@@ -46,11 +38,10 @@ class HalRegfile(HalBase):
         return "RegfileNode"
 
     def get_template_line(self) -> str:
-        return f"template<uint32_t BASE, typename PARENT_TYPE>"
+        return f"template <uint32_t BASE, typename PARENT_TYPE>"
 
-    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
-        str = self.type_name.upper() if not just_tmpl else ""
-        return str + "<BASE, PARENT_TYPE>"
+    def get_cls_tmpl_params(self) -> str:
+        return "<BASE, PARENT_TYPE>"
 
     @property
     def addr_offset(self) -> int:

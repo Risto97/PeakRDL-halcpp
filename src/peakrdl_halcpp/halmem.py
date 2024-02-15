@@ -38,15 +38,14 @@ class HalMem(HalBase):
         return self.size
 
     def get_template_line(self) -> str:
-        return f"template<uint32_t BASE, uint32_t SIZE, typename PARENT_TYPE>"
+        return f"template <uint32_t BASE, uint32_t SIZE, typename PARENT_TYPE>"
 
     @property
     def cpp_access_type(self) -> str:
         assert False, "cpp_access_type should not be called on HalMem class"
 
-    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
-        str = self.type_name.upper() if not just_tmpl else ""
-        return str + "<BASE, SIZE, PARENT_TYPE>"
+    def get_cls_tmpl_params(self) -> str:
+        return "<BASE, SIZE, PARENT_TYPE>"
 
     @property
     def type_name(self) -> str:

@@ -23,8 +23,9 @@ namespace halcpp
     class FieldBase
     {
     public:
-        /**
-         * @brief Get the absolute address of the parent register.
+        /**/**
+         * @brief
+         *
          */
         static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr(); }
 

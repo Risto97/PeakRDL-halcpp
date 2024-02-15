@@ -34,21 +34,16 @@ class HalUtils():
         """
         self.ext_modules = ext_modules
 
-        print(f'HALUTILS EXT: {self.ext_modules}')
-
     def get_include_file(self, halnode: HalAddrmap) -> str:
         """Returns the HAL node base header file or the extended header file
         if the later exists.
         """
-        print('############## GET INCL ##############')
         has_extern = self.has_extern(halnode)
         return halnode.orig_type_name + "_ext.h" if has_extern else halnode.type_name + ".h"
 
     def has_extern(self, halnode: HalAddrmap) -> bool:
         """Returns True if the HAL node is listed as having extended functionalities."""
         if self.ext_modules is not None:
-            print('############## HAS EXT ##############')
-            print(f'{halnode.orig_type_name} in {self.ext_modules}')
             if halnode.orig_type_name in self.ext_modules:
                 return True
         return False
@@ -56,7 +51,6 @@ class HalUtils():
     def get_extern(self, halnode: HalAddrmap) -> str:
         """Return the ??? name of the HAL node."""
         if self.has_extern(halnode):
-            print('############## GET EXT ##############')
             return halnode.orig_type_name
         return halnode.type_name
 
@@ -86,13 +80,6 @@ class HalUtils():
 
     def get_node_enum(self, halnode: HalBase):
         encode = halnode.get_property('encode')
-        # print('+++++++++++++++++++++++++')
-        # print(encode)
-        # print(halnode._node.list_properties())
-        # print(halnode.get_owning_addrmapnode())
-        # print(halnode.get_owning_addrmapnode().inst_name)
-        # print(halnode.get_owning_addrmapnode().orig_type_name)
-        # print('+++++++++++++++++++++++++')
         if encode is not None:
             haladdrmap_node = self.get_owning_haladdrmap(halnode)
             if not isinstance(haladdrmap_node, HalAddrmap):

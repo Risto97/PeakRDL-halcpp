@@ -21,17 +21,9 @@ class HalReg(HalBase):
         super().__init__(node, parent)
         self.bus_offset = bus_offset
 
-        self.fields = self.get_fields()
+        self.fields = self._get_fields()
 
-    @property  # TODO move to base?
-    def is_array(self) -> bool:
-        return self._node.is_array
-
-    @property
-    def width(self) -> int:
-        return max([c._node.high for c in self.fields]) + 1
-
-    def get_fields(self) -> 'List[HalField]':
+    def _get_fields(self) -> 'List[HalField]':
         return [HalField(c, self) for c in self._node.children() if isinstance(c, FieldNode)]
 
     @property
@@ -45,14 +37,30 @@ class HalReg(HalBase):
         assert False
 
     def get_template_line(self) -> str:
-        return f"template<uint32_t BASE, uint32_t WIDTH, typename PARENT_TYPE>"
+        """Returns the HAL C++ template for RegNode class.
 
-    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
-        str = self.type_name.upper() if not just_tmpl else ""
-        return str + "<BASE, WIDTH, PARENT_TYPE>"
+        Returns
+        -------
+            str
+                C++ template structure for RegNode class.
+        """
+        return f"template <uint32_t BASE, uint32_t WIDTH, typename PARENT_TYPE>"
+
+    def get_cls_tmpl_params(self) -> str:
+        """Returns the HAL template parameters for class object reference.
+
+        The structure must matched the template returned by :func:`get_template_line`.
+
+        Returns
+        -------
+            str
+                C++ template parameters.
+        """
+        return "<BASE, WIDTH, PARENT_TYPE>"
 
     @property
     def addr_offset(self) -> int:
+        """Returns the node address offset relative to its parent."""
         return self.bus_offset + self._node.address_offset
 
 
@@ -70,7 +78,9 @@ class HalArrReg(HalReg):
 
         assert node.is_array, "Register Node is not array"
 
-        assert self._node.size == self._node.array_stride, f"Different stride than regwidth is not supported {self._node.size} {self._node.array_stride}"
+        assert self._node.size == self._node.array_stride, (f"Different stride than \
+                                                            regwidth is not supported \
+                                                            {self._node.size} {self._node.array_stride}")
 
     @property
     def addr_offset(self):

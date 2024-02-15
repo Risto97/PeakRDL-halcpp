@@ -44,5 +44,5 @@ class HalField(HalBase):
     def get_template_line(self) -> str:
         assert False, "You should not create a class from a FieldNode"
 
-    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
+    def get_cls_tmpl_params(self, just_tmpl=False) -> str:
         assert False, "You should not extend FieldNode classes"

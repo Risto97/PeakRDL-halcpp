@@ -174,20 +174,20 @@ class HalAddrmap(HalBase):
         return regs
 
     def get_template_line(self) -> str:
-        """Returns the HAL C++ template for AddrmapNode.
+        """Returns the HAL C++ template for AddrmapNode class.
 
         Returns
         -------
             str
-                C++ template structure for AddrmapNode.
+                C++ template structure for AddrmapNode class.
         """
         if self.is_top_node:
             # Parent is set to void by default for the top node
             return "template <uint32_t BASE, typename PARENT_TYPE=void>"
         return "template <uint32_t BASE, typename PARENT_TYPE>"
 
-    def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
-        """Returns the HAL template parameters used for instantiation.
+    def get_cls_tmpl_params(self) -> str:
+        """Returns the HAL template parameters for class object reference.
 
         The structure must matched the template returned by :func:`get_template_line`.
 
@@ -196,12 +196,7 @@ class HalAddrmap(HalBase):
             str
                 C++ template parameters.
         """
-        str = self.type_name.upper() if not just_tmpl else ""
-
-        # Both lines are returning the same, why?
-        if self.is_top_node:
-            return str + "<BASE, PARENT_TYPE>"
-        return str + "<BASE, PARENT_TYPE>"
+        return "<BASE, PARENT_TYPE>"
 
     def get_addrmaps_recursive(self) -> List['HalAddrmap']:
         """Recursively fetch the HalAddrmap nodes into a list.

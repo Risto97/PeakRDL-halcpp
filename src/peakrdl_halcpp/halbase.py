@@ -18,9 +18,11 @@ class HalBase(ABC):
     Class methods:
 
     - :func:`get_docstring`
-    - :func:`get_cls_tmpl_spec`
-    - :func:`get_parent_haladdrmap`
+    - :func:`get_owning_addrmapnode`
+    - :func:`get_property`
+    - :func:`get_parent`
     - :func:`get_template_line`
+    - :func:`get_cls_tmpl_params`
     """
 
     def __init__(self, node: Node, parent: Union['HalBase', None]):
@@ -38,6 +40,11 @@ class HalBase(ABC):
     def type_name(self) -> str:
         """Returns the node type name property."""
         return self.orig_type_name
+
+    @property
+    def is_array(self) -> bool:
+        """Returns True if the node is an array."""
+        return self._node.is_array
 
     @abstractproperty
     def addr_offset(self) -> int:
@@ -70,9 +77,8 @@ class HalBase(ABC):
         desc = "/*\n"
         if self._node.get_property('desc') is not None:
             for l in self._node.get_property('desc').splitlines():
-                desc = desc + "* " + l + "\n"
-            print(desc + "*/")
-            return desc + "*/"
+                desc = desc + " * " + l + "\n"
+            return desc + " */"
         return ""
 
     def get_property(self, prop_name: str) -> Any:
@@ -103,17 +109,16 @@ class HalBase(ABC):
         pass
 
     @abstractmethod
-    def get_cls_tmpl_spec(self, just_tmpl: bool = False) -> str:
-        """This method must be overloaded by the child class.
+    def get_cls_tmpl_params(self) -> str:
+        """Returns the class template parameters. This method must be
+        overloaded by the child class.
 
-        Parameters
-        ----------
-        just_tmpl: (bool, optional)
-            TBD. Defaults to False.
+        The parameters correspond to the template parameters returned
+        by :func:`get_template_line`.
 
         Returns
         -------
         str
-            C++ string template (e.g., TBD) of ?
+            C++ string template parameters.
         """
         pass

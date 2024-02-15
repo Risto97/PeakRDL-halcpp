@@ -187,7 +187,7 @@ class HalAddrmap(HalBase):
         return "template <uint32_t BASE, typename PARENT_TYPE>"
 
     def get_cls_tmpl_spec(self, just_tmpl=False) -> str:
-        """Returns the HAL template parameters used for forwarding reference.
+        """Returns the HAL template parameters used for instantiation.
 
         The structure must matched the template returned by :func:`get_template_line`.
 
@@ -225,7 +225,7 @@ class HalAddrmap(HalBase):
 
         [mySoC, myMem0, mySubsystem, myPeriph0, myPeriph1, myMem1]
 
-        where each element is a HalAddrmap object. ONly the top node
+        where each element is a HalAddrmap object. Only the top node
         insert its own reference (i.e., mySoC) at the beginning.
 
         Returns

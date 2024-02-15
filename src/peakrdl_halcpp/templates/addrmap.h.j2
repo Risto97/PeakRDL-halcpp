@@ -12,13 +12,17 @@
 #pragma clang diagnostic ignored "-Wundefined-var-template"
 #endif
 
+{# Include the child nodes (i.e., the child addrmap ndoes) #}
 {% for c in halutils.get_unique_type_nodes(halnode.addrmaps) %}
 #include "{{ halutils.get_include_file(c) }}"
 {% endfor %}
 
 namespace {{ halnode.orig_type_name}}_nm {
+
+{# ======== 1. Generate the registers ======== #}
 {% for r in halutils.get_unique_type_nodes(halnode.regs + halnode.get_regfiles_regs() ) %}
 
+{# ======== 1.a Generate the enumeration class ======== #}
 {% for f in r.fields %}
 {% set has_enum, enum_name, enum_strings, enum_values, enum_desc, const_width = halutils.get_node_enum(f) %}
 {% if has_enum %}
@@ -31,16 +35,19 @@ public:
 {% endif %}
 {% endfor %}
 
+{# ======== 1.b Generate the register class ======== #}
 {{ r.get_docstring() }}
 {{ r.get_template_line() }}
 class {{ r.type_name|upper }} : public halcpp::{{ r.cpp_access_type }}{{ r.get_cls_tmpl_spec(True) }} {
 public:
     using TYPE = {{ r.get_cls_tmpl_spec() }};
 
+{# Add the fields to the register #}
 {% for f in r.fields %}
     static halcpp::{{ f.cpp_access_type }}<{{ f._node.low }}, {{ f._node.high }}, TYPE> {{ f._node.inst_name }};
 {% endfor %}
 
+{# Inherit the overloaded '=' operator from the base class if register can be write from software #}
 {% if r._node.has_sw_writable %}
     using halcpp::{{ r.cpp_access_type }}{{ r.get_cls_tmpl_spec(True) }}::operator=;
 
@@ -49,6 +56,7 @@ public:
 
 {% endfor %}
 
+{# ======== 2. Generate the register file classes ======== #}
 {% for rf in halnode.regfiles %}
 {{ rf.get_docstring() }}
 {{ rf.get_template_line() }}
@@ -67,6 +75,7 @@ public:
 };
 {% endfor %}
 
+{# ======== 3. Generate the memory classes ======== #}
 {% for m in halutils.get_unique_type_nodes(halnode.mems) %}
 {{ m.get_template_line() }}
 class {{ m.type_name|upper }} : public MemNode{{ m.get_cls_tmpl_spec(True) }} {
@@ -75,6 +84,7 @@ class {{ m.type_name|upper }} : public MemNode{{ m.get_cls_tmpl_spec(True) }} {
 {% endfor %}
 }
 
+{# ======== 4. Generate the top HAL class of an addrmap component ======== #}
 {{ halnode.get_docstring() }}
 {{ halnode.get_template_line() }}
 class {{ halnode.type_name|upper }} : public AddrmapNode<BASE, PARENT_TYPE> {

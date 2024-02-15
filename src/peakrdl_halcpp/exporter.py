@@ -28,17 +28,11 @@ class HalExporter():
 
         #: HAL C++ copied header library location within the generated files output directory
         self.cpp_dir = "include"
+
+        filetype  = "*.h"
+        abspaths = os.path.join(os.path.dirname(__file__), self.cpp_dir)
         #: HAL C++ headers list (copied into :attr:`~cpp_dir`)
-        self.base_headers = [
-            "halcpp_base.h",
-            "halcpp_utils.h",
-            "field_node.h",
-            "reg_node.h",
-            "regfile_node.h",
-            "array_nodes.h",
-            "addrmap_node.h",
-            "arch_io.h",
-        ]
+        self.base_headers = [f for f in os.listdir(abspaths) if f.endswith(filetype[1:])]
 
     def list_files(self, top: HalAddrmap, outdir: str):
         """Prints the generated files to stdout (without generating the files).
@@ -130,8 +124,8 @@ class HalExporter():
         regnodes = halutils.get_unique_type_nodes(top.regs + top.get_regfiles_regs())
         for reg in regnodes:
             print(reg._node.inst_name)
-        print("NO UNIQUIFY")
-        regnodes = top.regs # + top.get_regfiles_regs()
+        print("\nNO UNIQUIFY:")
+        regnodes = top.regs + top.get_regfiles_regs()
         for reg in regnodes:
             print(reg._node.inst_name)
         print("+++++++++++++++++++++++++++++++")
@@ -191,5 +185,5 @@ class HalExporter():
         })
         # Render the C++ header text using the jinja2 template and the
         # specific context
-        cpp_header_text = env.get_template("addrmap.j2").render(context)
+        cpp_header_text = env.get_template("addrmap.h.j2").render(context)
         return cpp_header_text

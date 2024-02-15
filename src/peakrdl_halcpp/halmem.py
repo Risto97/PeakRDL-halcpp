@@ -25,9 +25,9 @@ class HalMem(HalBase):
         if parent_node is not None:
             for c in parent_node._node.children():
                 if isinstance(c, AddressableNode):
-                    assert c == self._node, f"Addrmaps with anything else than \
-                                            one memory node is currently not allowed, \
-                                            it could be easily added"
+                    assert c == self._node, (f"Addrmaps with anything else than "
+                                             "one memory node is currently not allowed, "
+                                             "it could be easily added")
 
     @property
     def size(self) -> int:

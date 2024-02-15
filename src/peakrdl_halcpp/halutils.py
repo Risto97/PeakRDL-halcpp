@@ -34,33 +34,29 @@ class HalUtils():
         """
         self.ext_modules = ext_modules
 
+        print(f'HALUTILS EXT: {self.ext_modules}')
+
     def get_include_file(self, halnode: HalAddrmap) -> str:
         """Returns the HAL node base header file or the extended header file
         if the later exists.
         """
+        print('############## GET INCL ##############')
         has_extern = self.has_extern(halnode)
         return halnode.orig_type_name + "_ext.h" if has_extern else halnode.type_name + ".h"
 
     def has_extern(self, halnode: HalAddrmap) -> bool:
         """Returns True if the HAL node is listed as having extended functionalities."""
         if self.ext_modules is not None:
+            print('############## HAS EXT ##############')
+            print(f'{halnode.orig_type_name} in {self.ext_modules}')
             if halnode.orig_type_name in self.ext_modules:
                 return True
         return False
 
     def get_extern(self, halnode: HalAddrmap) -> str:
-        """Return the ??? name of the HAL node.
-
-        Parameters
-        ----------
-            halnode: HalAddrmap
-                HAL node corresponding to a SystemRDL addrmap object.
-
-        Returns
-        -------
-            str: ???
-        """
+        """Return the ??? name of the HAL node."""
         if self.has_extern(halnode):
+            print('############## GET EXT ##############')
             return halnode.orig_type_name
         return halnode.type_name
 
@@ -78,22 +74,29 @@ class HalUtils():
         comment += f"// By user: {username} at: {current_datetime}\n"
         return comment
 
-    def get_owning_addrmap(self, node: HalBase) -> Union[HalBase, HalAddrmap]:
-        """Returns the HalAddrmap enclosing this node."""
+    def get_owning_haladdrmap(self, node: HalBase) -> Union[HalBase, HalAddrmap]:
+        """Returns the HalAddrmap object enclosing this node."""
         parent_node = node.get_parent()
         if isinstance(parent_node, HalAddrmap):
             return parent_node
         elif parent_node is not None:
-            return self.get_owning_addrmap(parent_node)
+            return self.get_owning_haladdrmap(parent_node)
         else:
             raise ValueError(f'No HalAddrmap parent found in the hierarchy.')
 
-    def get_node_enum(self, node: HalBase):
-        encode = node.get_property('encode')
+    def get_node_enum(self, halnode: HalBase):
+        encode = halnode.get_property('encode')
+        # print('+++++++++++++++++++++++++')
+        # print(encode)
+        # print(halnode._node.list_properties())
+        # print(halnode.get_owning_addrmapnode())
+        # print(halnode.get_owning_addrmapnode().inst_name)
+        # print(halnode.get_owning_addrmapnode().orig_type_name)
+        # print('+++++++++++++++++++++++++')
         if encode is not None:
-            haladdrmap_node = self.get_owning_addrmap(node)
+            haladdrmap_node = self.get_owning_haladdrmap(halnode)
             if not isinstance(haladdrmap_node, HalAddrmap):
-                raise ValueError(f'Returned node is not an HalAddrmap object.')
+                raise ValueError(f'Returned halnode is not an HalAddrmap object.')
 
             # Each addrmap is enclosed in a specific namespace
             # Get this namespace enums and add the new ones
@@ -105,7 +108,7 @@ class HalUtils():
                 # Is this check really needed?
                 # It should always be true, because if its not then the above check should not be true
                 # TODO WHAT???
-                if namespace_enums[name][-1] == node.get_property('owning_addrmap'):
+                if namespace_enums[name][-1] == halnode.get_owning_addrmapnode():
                     return False, None, None, None, None, None
             enum_strings = []
             enum_values = []
@@ -118,7 +121,7 @@ class HalUtils():
             const_width = max(enum_values).bit_length()
 
             namespace_enums[name] = [enum_strings, enum_values,
-                                     enum_desc, const_width, node.get_property('owning_addrmap')]
+                                     enum_desc, const_width, halnode.get_owning_addrmapnode()]
             return True, name, enum_strings, enum_values, enum_desc, const_width
 
         return False, None, None, None, None, None

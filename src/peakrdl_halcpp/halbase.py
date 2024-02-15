@@ -1,17 +1,17 @@
-from typing import Union, Any
+from typing import Union, Any, Optional
 from abc import ABC, abstractmethod, abstractproperty
 
-from systemrdl.node import Node
+from systemrdl.node import Node, AddrmapNode
 
 
 class HalBase(ABC):
     """Base abstract class for all the different HAL nodes (Addrmap, Reg, Mem, and Field).
 
-    .. inheritance-diagram:: peakrdl_halcpp.haladdrmap.HalAddrmap
-                             peakrdl_halcpp.halreg.HalReg
-                             peakrdl_halcpp.halmem.HalMem
-                             peakrdl_halcpp.halfield.HalField
-                             peakrdl_halcpp.halregfile.HalRegfile
+    .. inheritance-diagram:: peakrdl_halcpp.haladdrmap
+                             peakrdl_halcpp.halreg
+                             peakrdl_halcpp.halmem
+                             peakrdl_halcpp.halfield
+                             peakrdl_halcpp.halregfile
         :top-classes: peakrdl_halcpp.halbase.HalBase
         :parts: 1
 
@@ -66,13 +66,7 @@ class HalBase(ABC):
         pass
 
     def get_docstring(self) -> str:
-        """Converts the node description into a C++ multi-line comment.
-
-        Returns
-        -------
-        str
-            C++ multi-line comment string.
-        """
+        """Converts the node description into a C++ multi-line comment."""
         desc = "/*\n"
         if self._node.get_property('desc') is not None:
             for l in self._node.get_property('desc').splitlines():
@@ -84,6 +78,10 @@ class HalBase(ABC):
     def get_property(self, prop_name: str) -> Any:
         """Returns the SystemRDL node property."""
         return self._node.get_property(prop_name)
+
+    def get_owning_addrmapnode(self) -> Optional[AddrmapNode]:
+        """Returns the AddrmapNode owning this one."""
+        return self._node.owning_addrmap
 
     def get_parent(self) -> Union['HalBase', None]:
         """Returns this node parent."""

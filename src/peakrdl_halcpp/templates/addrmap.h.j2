@@ -105,7 +105,7 @@ namespace {{ halnode.inst_name }}_nm
     {% endfor %}
 
     {# ======== 3. Generate the register file classes ======== #}
-    {% for rf in halnode.halchildren(children_type=HalRegfileNode, skip_buses=skip_buses) %}
+    {% for rf in halnode.haldescendants(descendants_type=HalRegfileNode, in_post_order=True, skip_buses=skip_buses) %}
     {{ rf.get_docstring() }}
     {{ rf.get_template_line() }}
     class {{ rf.inst_name|upper }} : public halcpp::{{ rf.cpp_access_type }}{{ rf.get_cls_tmpl_params()}}
@@ -113,7 +113,7 @@ namespace {{ halnode.inst_name }}_nm
     public:
         using TYPE = {{ rf.inst_name|upper }}{{ rf.get_cls_tmpl_params() }};
 
-    {% for c in halnode.halchildren(HalRegNode, skip_buses=skip_buses) %}
+    {% for c in rf.halchildren((HalRegNode, HalRegfileNode), skip_buses=skip_buses) %}
         static {{ c.inst_name|upper }}<0x{{ "%0x"|format(c.address_offset|int) }}, {{ c.width }}, TYPE> {{ c.inst_name }};
     {% endfor %}
     };

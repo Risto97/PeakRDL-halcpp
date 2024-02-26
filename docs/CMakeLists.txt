@@ -8,13 +8,6 @@ project(PeakRDL-halcpp-Documentation
 # This is needed to create the python venv for CMinx
 include("deps/deps.cmake")
 
-# Check Sphinx executables exists
-# find_program(
-#     SPHINX_BUILD
-#     NAMES sphinx-build
-#     HINTS ${Python3_VIRTUAL_ENV}/bin
-#     REQUIRED
-# )
 find_program(
     SPHINX_APIDOC
     NAMES sphinx-apidoc

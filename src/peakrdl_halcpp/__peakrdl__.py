@@ -20,8 +20,8 @@ class Exporter(ExporterSubcommandPlugin):
         arg_group.add_argument(
             "--ext",
             nargs="*",
-            help="List of addrmap modules that have implemented <name>_EXT class in \
-                <name>_ext.h header file, used for extending functionality."
+            help="List of addrmap modules that have implemented <name>_HAL_EXT class in \
+                <name>_hal_ext.h header file, used for extending functionality."
         )
 
         arg_group.add_argument(
@@ -34,13 +34,12 @@ class Exporter(ExporterSubcommandPlugin):
         )
 
         arg_group.add_argument(
-            "--keep-buses",
-            dest="keep_buses",
+            "--skip-buses",
+            dest="skip_buses",
             default=False,
             action="store_true",
-            help="If there is an addrmap containing only addrmaps, not registers, by \
-                default it will be omitted in hierarchy, it is possible to keep it by \
-                passing --keep-buses flag."
+            help="Addrmaps containing only addrmaps, not registers, can be removed by \
+                passing --skip-buses flag."
         )
 
     def do_export(self, top_node: 'AddrmapNode', options: 'argparse.Namespace') -> None:
@@ -51,5 +50,5 @@ class Exporter(ExporterSubcommandPlugin):
             outdir=options.output,
             list_files=options.list_files,
             ext_modules=options.ext,
-            keep_buses=options.keep_buses,
+            skip_buses=options.skip_buses,
         )

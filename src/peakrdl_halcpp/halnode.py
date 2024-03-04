@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, Iterator
+from typing import TYPE_CHECKING, Optional, Iterator, List
 import itertools
 
 from systemrdl.node import Node, RootNode, AddrmapNode, MemNode, RegfileNode
@@ -32,6 +32,9 @@ class HalBaseNode(Node):
         - :func:`haldescendants`
     """
 
+    # Static variable to retain warning issued
+    _type_warning_list: List[str] = []
+
     def __iter__(self):
         # Make this class iterable
         yield self
@@ -40,6 +43,11 @@ class HalBaseNode(Node):
     def inst_name_hal(self) -> str:
         """Return the node name with the '_hal' suffix."""
         return super().inst_name.lower() + "_hal"
+
+    @property
+    def orig_type_name_hal(self) -> str:
+        """Return the node name with the '_hal' suffix."""
+        return super().orig_type_name.lower() + "_hal"
 
     @property
     def is_bus(self) -> bool:
@@ -90,36 +98,72 @@ class HalBaseNode(Node):
             # Not an array. Nothing to unroll
             yield cls(self.inst, self.env, self.parent)
 
-    def halchildren(self, children_type: 'Node' = Node, unroll: bool = False, skip_not_present: bool = True, skip_buses: bool = False, bus_offset: int = 0) -> Iterator['Node']:
+    def halchildren(self,
+                    children_type: 'Node' = Node,
+                    unroll: bool = False,
+                    skip_not_present: bool = True,
+                    skip_buses: bool = False,
+                    bus_offset: int = 0,
+                    unique_orig_type: bool = False,
+                    type_dict: Optional[dict] = None
+                    ) -> Iterator['Node']:
         """HAL children generator method wrapper around systemrdl Node.children method."""
+
+        if type_dict is None:
+            type_dict = {}
+
         for child in self.children(unroll, skip_not_present):
             halchild = HalBaseNode._halfactory(child, self.env, self)
-
             if isinstance(halchild, children_type):
                 child_bus_offset = 0
                 if skip_buses and halchild.is_bus:
                     child_bus_offset = bus_offset + halchild.address_offset
-                    yield from halchild.halchildren(children_type, unroll, skip_not_present, skip_buses, child_bus_offset)
+                    yield from halchild.halchildren(children_type, unroll, skip_not_present, skip_buses, child_bus_offset, unique_orig_type, type_dict)
                 else:
                     halchild.bus_offset = bus_offset
-                    yield halchild
+                    if not unique_orig_type or halchild.orig_type_name not in type_dict:
+                        yield halchild
 
-    def haldescendants(self, descendants_type: 'Node' = Node, unroll: bool = False, skip_not_present: bool = True, in_post_order: bool = False, skip_buses: bool = False, bus_offset: int = 0) -> Iterator['Node']:
+                # Issue a warning if orig_type_name already encountered and type_name does not match
+                if halchild.orig_type_name in type_dict:
+                    if type_dict[halchild.orig_type_name] != halchild.type_name and halchild.orig_type_name not in HalBaseNode._type_warning_list:
+                        print(f'WARNING: Two instances with same orig_type_name but different type_name (i.e., parameters) detected.')
+                        print(f'WARNING: Original type name is: {halchild.orig_type_name}')
+                        print(f'WARNING: Type name 1 is: {type_dict[halchild.orig_type_name]}')
+                        print(f'WARNING: Type name 2 is: {halchild.type_name}')
+                        print(f'WARNING: This is not properly supported by this plugin and might create inconsistent output.')
+                        # Add it to the list to avoid repeating the warning
+                        HalBaseNode._type_warning_list.append(
+                            halchild.orig_type_name)
+                elif halchild.orig_type_name is not None:
+                    type_dict[halchild.orig_type_name] = halchild.type_name
+
+    def haldescendants(self,
+                       descendants_type: 'Node' = Node,
+                       unroll: bool = False,
+                       skip_not_present: bool = True,
+                       in_post_order: bool = False,
+                       skip_buses: bool = False,
+                       bus_offset: int = 0,
+                       unique_orig_type: bool = False,
+                       type_dict: Optional[dict] = None
+                       ) -> Iterator['Node']:
         """HAL node descedant generator adapted from systemrdl Node.descendants class."""
-        for child in self.halchildren(descendants_type, unroll, skip_not_present, skip_buses, bus_offset):
+
+        for child in self.halchildren(descendants_type, unroll, skip_not_present, skip_buses, bus_offset, unique_orig_type, type_dict):
             if isinstance(child, descendants_type):
                 child_bus_offset = 0
                 if skip_buses and self.is_bus:
                     child_bus_offset = bus_offset + child.address_offset
 
                 if in_post_order:
-                    yield from child.haldescendants(descendants_type, unroll, skip_not_present, in_post_order, skip_buses, child_bus_offset)
+                    yield from child.haldescendants(descendants_type, unroll, skip_not_present, in_post_order, skip_buses, child_bus_offset, unique_orig_type, type_dict)
 
                 if not (skip_buses and child.is_bus):
                     yield child
 
                 if not in_post_order:
-                    yield from child.haldescendants(descendants_type, unroll, skip_not_present, in_post_order, skip_buses, child_bus_offset)
+                    yield from child.haldescendants(descendants_type, unroll, skip_not_present, in_post_order, skip_buses, child_bus_offset, unique_orig_type, type_dict)
 
 
 class HalFieldNode(HalBaseNode, FieldNode):
@@ -129,6 +173,7 @@ class HalFieldNode(HalBaseNode, FieldNode):
 
         - :func:`get_enums`
     """
+
     def __init__(self, node: FieldNode):
         # Use the system-RDL AddrmapNode class initialization
         super().__init__(node.inst, node.env, node.parent)
@@ -184,6 +229,7 @@ class HalRegNode(HalBaseNode, RegNode):
         - :func:`get_template_line`
         - :func:`get_cls_tmpl_params`
     """
+
     def __init__(self, node: RegNode):
         # Use the system-RDL AddrmapNode class initialization
         super().__init__(node.inst, node.env, node.parent)
@@ -233,6 +279,7 @@ class HalRegfileNode(HalBaseNode, RegfileNode):
         - :func:`get_template_line`
         - :func:`get_cls_tmpl_params`
     """
+
     def __init__(self, node: RegfileNode):
         # Use the system-RDL AddrmapNode class initialization
         super().__init__(node.inst, node.env, node.parent)
@@ -276,6 +323,7 @@ class HalMemNode(HalBaseNode, MemNode):
         - :func:`get_template_line`
         - :func:`get_cls_tmpl_params`
     """
+
     def __init__(self, node: MemNode):
         # Use the system-RDL MemNode class initialization
         super().__init__(node.inst, node.env, node.parent)
@@ -315,6 +363,7 @@ class HalAddrmapNode(HalBaseNode, AddrmapNode):
         - :func:`get_template_line`
         - :func:`get_cls_tmpl_params`
     """
+
     def __init__(self, node: AddrmapNode):
         # Use the system-RDL AddrmapNode class initialization
         super().__init__(node.inst, node.env, node.parent)
@@ -336,6 +385,14 @@ class HalAddrmapNode(HalBaseNode, AddrmapNode):
         """Check if addrmap contains only addrmap"""
         for child in self.halchildren():
             if not isinstance(child, HalAddrmapNode):
+                return False
+        return True
+
+    @property
+    def is_mem_addrmap(self) -> bool:
+        """Checks if this is an addrmap containing (only) a memory."""
+        for child in self.halchildren():
+            if not isinstance(child, HalMemNode):
                 return False
         return True
 

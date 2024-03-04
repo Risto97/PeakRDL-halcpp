@@ -1,5 +1,4 @@
 // Generated with PeakRD-halcpp : https://github.com/Risto97/PeakRDL-halcpp
-// By user: bdenking at: 2024-02-22 15:52:31
 #ifndef __ATXMEGA_SPI_HAL_H_
 #define __ATXMEGA_SPI_HAL_H_
 

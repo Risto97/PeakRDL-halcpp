@@ -103,42 +103,51 @@ class HalExporter():
         # Create top HalAddrmapNode from top AddrmapNode
         top = HalAddrmapNode(node)
 
-        if list_files:
-            # Only print the files that would be generated
-            self.list_files(top, outdir, skip_buses)
-        else:
+        if not list_files:
             # Create the output directory for the generated files
             try:
                 os.makedirs(outdir)
             except FileExistsError:
                 pass
 
-            # Iterate over all the decendants of the top HalAddrmap object
-            concatenated_iterable = chain(top.haldescendants(
-                descendants_type=HalAddrmapNode, skip_buses=skip_buses), top)
-
-            for halnode in concatenated_iterable:
-                context = {
-                    'halnode': halnode,
-                    'halutils': halutils,
-                    'skip_buses': skip_buses,
-                    'HalAddrmapNode': HalAddrmapNode,
-                    'HalMemNode': HalMemNode,
-                    'HalRegfileNode': HalRegfileNode,
-                    'HalRegNode': HalRegNode,
-                    'HalFieldNode': HalFieldNode,
-                }
-
-                # The next lines generate the C++ header file for the
-                # HalAddrmap node using a jinja2 template.
-                text = self.process_template(context)
-                out_file = os.path.join(
-                    outdir, halnode.inst_name_hal.lower() + ".h")
-                with open(out_file, 'w') as f:
-                    f.write(text)
-
             # Copy the base header files (fixed code) to the output directory
             self.copy_base_headers(outdir)
+
+        # Iterate over all the decendants of the top HalAddrmap object
+        concatenated_iterable = chain(top.haldescendants(
+            descendants_type=HalAddrmapNode, skip_buses=skip_buses, unique_orig_type=True), top)
+
+        for halnode in concatenated_iterable:
+            # Create the context for the template generation
+            context = {
+                'halnode': halnode,
+                'halutils': halutils,
+                'skip_buses': skip_buses,
+                'HalAddrmapNode': HalAddrmapNode,
+                'HalMemNode': HalMemNode,
+                'HalRegfileNode': HalRegfileNode,
+                'HalRegNode': HalRegNode,
+                'HalFieldNode': HalFieldNode,
+            }
+
+            # The next lines generate the C++ header file for the
+            # HalAddrmap node using a jinja2 template.
+            text = self.process_template(context)
+
+            # Addrmaps for memories use the original type name
+            if halnode.is_mem_addrmap:
+                out_file = os.path.join(
+                    outdir, halnode.orig_type_name_hal.lower() + ".h")
+            else:
+                out_file = os.path.join(
+                    outdir, halnode.inst_name_hal.lower() + ".h")
+
+            # Only print the files if --list-files parameter is given
+            if list_files:
+                print(out_file)
+            else:
+                with open(out_file, 'w') as f:
+                    f.write(text)
 
     def process_template(self, context: Dict) -> str:
         """Generates a C++ header file based on a jinja2 template.

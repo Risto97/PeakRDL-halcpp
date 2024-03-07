@@ -2,6 +2,7 @@ import os
 from typing import Union, Any, List, Dict
 import shutil
 from itertools import chain
+import logging
 
 import jinja2 as jj
 from systemrdl.node import RootNode, AddrmapNode
@@ -9,13 +10,11 @@ from systemrdl.node import RootNode, AddrmapNode
 from .halutils import *
 from .halnode import *
 
-
 class HalExporter():
     """HAL C++ PeakRDL plugin top class to generate the C++ HAL from SystemRDL description.
 
     Class methods:
 
-    - :func:`list_files`
     - :func:`copy_base_headers`
     - :func:`export`
     - :func:`process_template`
@@ -35,24 +34,6 @@ class HalExporter():
         #: HAL C++ headers list (copied into :attr:`~cpp_dir`)
         self.base_headers = [f for f in os.listdir(
             abspaths) if f.endswith(filetype[1:])]
-
-    def list_files(self, top: HalAddrmapNode, outdir: str, skip_buses: bool):
-        """Prints the generated files to stdout (without generating the files).
-
-        Parameters
-        ----------
-        top: HalAddrmap
-            Top level HalAddrmap object.
-        outdir: str
-            Output directory in which the output files are generated.
-        """
-        gen_files = [os.path.join(outdir, addrmap.inst_name_hal + ".h")
-                     for addrmap in top.haldescendants(HalAddrmapNode, skip_buses=skip_buses)]
-        # Create base header files path
-        base_files = [os.path.join(self.cpp_dir, x) for x in self.base_headers]
-        # Add the base header files to the list of files
-        out_files = [os.path.join(outdir, x) for x in base_files] + gen_files
-        print(*out_files, sep="\n")
 
     def copy_base_headers(self, outdir: str):
         """Copies the HAL C++ headers to the generated files location given
@@ -117,6 +98,9 @@ class HalExporter():
         concatenated_iterable = chain(top.haldescendants(
             descendants_type=HalAddrmapNode, skip_buses=skip_buses, unique_orig_type=True), top)
 
+        if list_files:
+            print('INFO: Only listing files (no actual generation)')
+
         for halnode in concatenated_iterable:
             # Create the context for the template generation
             context = {
@@ -142,10 +126,11 @@ class HalExporter():
                 out_file = os.path.join(
                     outdir, halnode.inst_name_hal.lower() + ".h")
 
-            # Only print the files if --list-files parameter is given
+            # Generate the files if --list-files parameter is not set
             if list_files:
-                print(out_file)
+                print('INFO: ' + out_file)
             else:
+                print('INFO: Generated file: ' + out_file)
                 with open(out_file, 'w') as f:
                     f.write(text)
 

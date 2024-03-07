@@ -1,11 +1,23 @@
 from typing import TYPE_CHECKING, Optional, Iterator, List
 import itertools
+import logging
 
 from systemrdl.node import Node, RootNode, AddrmapNode, MemNode, RegfileNode
 from systemrdl.node import RegNode, FieldNode, SignalNode, AddressableNode
 
+
 if TYPE_CHECKING:
     from systemrdl.compiler import RDLEnvironment
+
+# Logger generation for halnode module
+halnode_logger = logging.getLogger("halnode_logger")
+# Console handler
+ch = logging.StreamHandler()
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(name)s - %(levelname)s: %(message)s')
+ch.setFormatter(formatter)
+# add the handlers to the logger
+halnode_logger.addHandler(ch)
 
 
 class HalBaseNode(Node):
@@ -80,7 +92,7 @@ class HalBaseNode(Node):
             # Signals are not supported by this plugin
             return None
         else:
-            print(f'ERROR: inst type {type(inst)} is not recognized')
+            halnode_logger.error(f'inst type {type(inst)} is not recognized')
             raise RuntimeError
 
     def halunrolled(self) -> Iterator['Node']:
@@ -127,11 +139,11 @@ class HalBaseNode(Node):
                 # Issue a warning if orig_type_name already encountered and type_name does not match
                 if halchild.orig_type_name in type_dict:
                     if type_dict[halchild.orig_type_name] != halchild.type_name and halchild.orig_type_name not in HalBaseNode._type_warning_list:
-                        print(f'WARNING: Two instances with same orig_type_name but different type_name (i.e., parameters) detected.')
-                        print(f'WARNING: Original type name is: {halchild.orig_type_name}')
-                        print(f'WARNING: Type name 1 is: {type_dict[halchild.orig_type_name]}')
-                        print(f'WARNING: Type name 2 is: {halchild.type_name}')
-                        print(f'WARNING: This is not properly supported by this plugin and might create inconsistent output.')
+                        halnode_logger.warning(f'Two instances with same orig_type_name but different type_name (i.e., parameters) detected.')
+                        halnode_logger.warning(f'Original type name is: {halchild.orig_type_name}')
+                        halnode_logger.warning(f'Type name 1 is: {type_dict[halchild.orig_type_name]}')
+                        halnode_logger.warning(f'Type name 2 is: {halchild.type_name}')
+                        halnode_logger.warning(f'This is not properly supported by this plugin and might create inconsistent output.')
                         # Add it to the list to avoid repeating the warning
                         HalBaseNode._type_warning_list.append(
                             halchild.orig_type_name)

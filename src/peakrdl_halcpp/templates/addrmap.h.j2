@@ -122,7 +122,7 @@ namespace {{ halnode.orig_type_name }}_nm
     {# ======== 4. Generate the memory classes ======== #}
     {% for m in halnode.halchildren(children_type=HalMemNode, skip_buses=skip_buses, unique_orig_type=True) %}
     {{ m.get_template_line() }}
-    class {{ m.parent.orig_type_name|upper }} : public MemNode{{ m.get_cls_tmpl_params() }}
+    class {{ m.parent.orig_type_name|upper }} : public halcpp::MemNode{{ m.get_cls_tmpl_params() }}
     {
 
     };

@@ -62,6 +62,17 @@ class HalBaseNode(Node):
         return super().orig_type_name.lower() + "_hal"
 
     @property
+    def orig_type_name(self) -> str:
+        """Returns type_name if orig_type_name is none.
+
+        Node instantiate anonymously do not have orig_type_name so use type_name.
+        """
+        if super().orig_type_name is not None:
+            return super().orig_type_name
+        else:
+            return super().type_name
+
+    @property
     def is_bus(self) -> bool:
         """Returns True if the HAL node is considered a bus (i.e., addrmap containing only addrmaps)."""
         return False

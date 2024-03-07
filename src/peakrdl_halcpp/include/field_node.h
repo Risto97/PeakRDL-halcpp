@@ -24,19 +24,20 @@ namespace halcpp
     {
     public:
         /**
-         * @brief
+         * @brief Return the absolute address of the node.
          *
          */
         static constexpr uint32_t get_abs_addr() { return PARENT_TYPE().get_abs_addr(); }
 
     protected:
         using parent_type = PARENT_TYPE;
-        using dataType = typename std::conditional<width <= 8, uint8_t,
-                                                   typename std::conditional<width <= 16, uint16_t, uint32_t>::type>::type;
 
         static constexpr uint32_t start_bit = START_BIT;
         static constexpr uint32_t end_bit = END_BIT;
         static constexpr uint32_t width = END_BIT - START_BIT + 1;
+
+        using dataType = typename std::conditional<width <= 8, uint8_t,
+                                                   typename std::conditional<width <= 16, uint16_t, uint32_t>::type>::type;
 
         /**
          * @brief Calculate the field mask.

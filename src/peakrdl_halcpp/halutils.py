@@ -34,10 +34,11 @@ class HalUtils():
         return False
 
     def get_extern(self, halnode: HalAddrmapNode) -> str:
-        """Return the HAL node instance name with the '_ext' suffix if the node is listed
-        as having extended functionalities."""
+        """Return the HAL node instance name replacing the '_hal' suffix with
+         the '_ext' suffix if the node is listed as having extended functionalities.
+         """
         if self.has_extern(halnode):
-            return halnode.orig_type_name_hal + '_ext'
+            return halnode.orig_type_name.replace('_hal', '_ext')
         return halnode.orig_type_name_hal
 
     def generate_file_header(self) -> str:

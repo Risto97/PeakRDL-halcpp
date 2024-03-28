@@ -35,18 +35,18 @@ The memory access is not done by these mixins, but the requests are instead pass
 The 2 mixins will provide at least the `get()` and `set()` methods for accessing the field.
 The execution of getters and setters will depend on the type of the containing register.
 
-#### Writing to a field 
+#### Writing to a field
 
 In case of a writing a value to a field there are 2 cases.
 
 ##### 1. Containing register is `write only`
 
-In this case the value passed to the register for writting will just be the value written to the field shifted by `LSB`.
+In this case the value passed to the register for writing will just be the value written to the field shifted by `LSB`.
 This will correspond to only 1 write memory access, and an additional shifting operation if the passed value is a variable.
 
 ##### 2. Containing register is `rw`
 
-In this case it is neccessary to read first the register value and apply a mask corresponding to the location of the field.
+In this case it is necessary to read first the register value and apply a mask corresponding to the location of the field.
 
 The field `set()` method will first read a value from the containing register, apply a mask, and `|` (OR) the value with the shifted value of the passed argument to the `set()` method.
 
@@ -54,18 +54,18 @@ This will correspond to 1 read memory operation first, followed by arithmetic op
 
 #### Reading from a field
 
-In case of reading from a field, the operation does not depend on the containing register, and the value returned from `get()` function will just be contining register value with applied mask and shifted right by `LSB`.
-It will in this case have 1 read memory access, and arithmetic operation for mask and shifting (can vary)
+In case of reading from a field, the operation does not depend on the containing register, and the value returned from `get()` function will just be containing register value with applied mask and shifted right by `LSB`.
+It will in this case have 1 read memory access, and arithmetic operation for mask and shifting (can vary).
 
 ## `FieldNode`
 
-`FieldNode` is a template class is inheriting the parameter pack of mixins. The prototype is as shown:
+`FieldNode` is a template class inheriting the parameter pack of mixins. The prototype is as shown:
 ```cpp
 template <typename... FieldMixins>
 class FieldNode : public FieldMixins...
 ```
 
-In order to provide Registers and Fields that have `Read`, `Write` or `ReadWrite` capabilites, the templates `FieldNode` are inheriting parameter pack of `Mixins` meant to provide the additional functionality.
+In order to provide Registers and Fields that have `Read`, `Write` or `ReadWrite` capabilities, the templates `FieldNode` are inheriting parameter pack of `Mixins` meant to provide the additional functionality.
 
 For example:
 *   `FieldNode` inheriting only `FieldRdMixin` will be a `read-only` field.
@@ -82,7 +82,7 @@ template <uint32_t START_BIT, uint32_t END_BIT, typename PARENT_TYPE>
 using FieldRO = ...
 ```
 
-###  `FieldWO` 
+###  `FieldWO`
 is a `write-only` field with a declaration:
 
 ```cpp
@@ -99,8 +99,5 @@ using FieldRW = ...
 ```
 
 
-It is adviced to use these specializations to construct your fields
-
-
-Same applies for `RegNode` template.
+It is advised to use these specializations to construct your fields.
 

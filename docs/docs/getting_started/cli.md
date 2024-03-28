@@ -9,7 +9,7 @@ sidebar_position: 3
 ```
 peakrdl halcpp [-h] [-I INCDIR] [-t TOP] [--rename INST_NAME]
                     [-P PARAMETER=VALUE] -o OUTPUT [--ext [EXT [EXT ...]]]
-                    [--list-files] [--keep-buses] [-f FILE] [--peakrdl-cfg CFG]
+                    [--list-files] [--skip-buses] [-f FILE] [--peakrdl-cfg CFG]
                     FILE [FILE ...]
 ```
 
@@ -27,7 +27,7 @@ peakrdl halcpp [-h] [-I INCDIR] [-t TOP] [--rename INST_NAME]
 |[`-o`](#_o)                      |Option    |    1|exporter args        |
 |[`--ext`](#__ext)                |Option    |*    |exporter args        |
 |[`--list-files`](#__list_files)  |Option    |    0|exporter args        |
-|[`--keep-buses`](#__keep_buses)  |Option    |    0|exporter args        |
+|[`--skip-buses`](#__skip_buses)  |Option    |    0|exporter args        |
 
 
 ### `-h` `--help` {#_h___help}
@@ -70,8 +70,7 @@ list of addrmap modules that have implemented {name}_EXT class in {name}_ext.h h
 
 Dont generate files, but instead just list the files that will be generated, and external files that need to be included
 
-### `--keep-buses` {#__keep_buses}
+### `--skip-buses` {#__skip_buses}
 
-If there is an addrmap containing only addrmaps, not registers, by default it will be ommited in hierarchy, it is possible to keep it by passing --keep-buses flag
-
+By default the SystemRDL hierarchy is preserved but it can be simplified by removing buses (i.e., addrmap containing only addrmaps, not registers). This is achieved by passing the --skip-buses flag.
 

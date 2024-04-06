@@ -4,7 +4,7 @@ sidebar_position: 3
 # RegNode
 
 `RegNode` is a template class that represents a `reg` component in SystemRDL.<br/>
-`RegNode` can contain only `FieldNodes`, and it must be instantiated within `AddrmapNode` (or `RegFileNode` TODO)
+`RegNode` can contain only `FieldNodes`, and it must be instantiated within `AddrmapNode` or `RegFileNode`.
 
 ## `RegBase`
 
@@ -19,9 +19,9 @@ class RegBase {
 ```
 
 The template parameters are:
-*   `BASE` is a address offset within an `AddrmapNode`.
+*   `BASE` is an address offset within an `AddrmapNode`.
 *   `WIDTH` is a width of the register.
-*   `PARENT_TYPE` accepts a specialization of a `AddrmapNode` template, and is the type of the containing addrmap.
+*   `PARENT_TYPE` accepts a specialization of an `AddrmapNode` template, and is the type of the containing addrmap.
 It is necessary to pass this type, because the `write` and `read` methods of the field will pass these requests to the parent register, along with the value written.
 
 
@@ -37,13 +37,13 @@ The 2 mixins will provide at least the `get()` and `set()` methods for accessing
 
 ## `RegNode`
 
-`RegNode` is a template class is inheriting the parameter pack of mixins. The prototype is as shown:
+`RegNode` is a template class inheriting the parameter pack of mixins. The prototype is as shown:
 ```cpp
 template <typename... RegMixins>
 class RegNode : public RegMixins...
 ```
 
-In order to provide Register that have `Read`, `Write` or `ReadWrite` capabilites, the template `RegNode` is inheriting parameter pack of `Mixins` meant to provide the additional functionality.
+In order to provide Register that have `Read`, `Write` or `ReadWrite` capabilities, the template `RegNode` is inheriting parameter pack of `Mixins` meant to provide the additional functionality.
 
 For example:
 *   `RegNode` inheriting only `RegRdMixin` will be a `read-only` register.
@@ -60,7 +60,7 @@ template <uint32_t BASE, uint32_t WIDTH, typename PARENT_TYPE>
 using RegRO = ...
 ```
 
-###  `FieldWO` 
+###  `FieldWO`
 is a `write-only` field with a declaration:
 
 ```cpp
@@ -76,4 +76,5 @@ template <uint32_t BASE, uint32_t WIDTH, typename PARENT_TYPE>
 using RegRW = ...
 ```
 
-It is adviced to use these specializations to construct your registers
+It is advised to use these specializations to construct your registers
+

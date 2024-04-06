@@ -9,6 +9,7 @@ They can be found in [src/include](https://github.com/Risto97/PeakRDL-halcpp/tre
 
 There you can find the following base template classes:
 *   [AddrmapNode](/docs/hierarchy/nodes/addrmap)
+*   [RegfileNode](/docs/hierarchy/nodes/regfile)
 *   [RegNode](/docs/hierarchy/nodes/reg)
 *   [FieldNode](/docs/hierarchy/nodes/field)
 *   [MemNode](/docs/hierarchy/nodes/mem)

@@ -13,7 +13,7 @@ The default node provides a typical memory IO operations for a CPU.
 However it is possible to override this node in cases of:
 *   Using generated halcpp drivers as a `UVM-RAL` for `SystemC-UVM` or `C++` testbenches.
 *   For debugging, where you might want to replace memory IO with console prints
-*   For Emulation, where you might want to model memory IO operations its side effects in the platform.
+*   For Emulation, where you might want to model memory IO operations and side effects in the platform.
 *   Or Simply if the provided `ArchIoNode` is not adequate.
 
 ## Overriding `ArchIoNode`
@@ -32,4 +32,4 @@ public:
 ```
 
 The easiest solution is to define macro `_ARCH_IO_H_` before including the HAL driver header file (in this case `soc_hal.h`).
-After that you need to provide your custom implemetnation for ArchIoNode.
+After that you need to provide your custom implementation for ArchIoNode.

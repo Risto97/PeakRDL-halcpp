@@ -15,7 +15,7 @@ assert top is not None
 exporter = HalExporter()
 
 exporter.export(
-        nodes=top,
+        node=top,
         outdir="generated",
         )
 

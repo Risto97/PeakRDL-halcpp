@@ -2,7 +2,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 project(PeakRDL-halcpp-Documentation
-        VERSION 0.4.0
+        VERSION 0.4.1
 )
 
 # This is needed to create the python venv for CMinx

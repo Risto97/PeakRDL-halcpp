@@ -16,9 +16,11 @@ check: ## Run code quality tools.
 	@uv run deptry src
 
 .PHONY: test
-test: ## Test the code with pytest
+test: ## Test the code with pytest and static type checking
 	@echo "🚀 Testing code: Running pytest"
 	@uv run python -m pytest --cov --cov-config=pyproject.toml --cov-report=xml
+	@echo "🚀 Static type checking: Running ty"
+	@uv run ty check
 
 .PHONY: build
 build: clean-build ## Build wheel file

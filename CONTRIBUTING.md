@@ -33,7 +33,7 @@ peakrdl-halcpp could always use more documentation, whether as part of the offic
 
 ## Submit Feedback
 
-The best way to send feedback is to file an issue at https://github.com/Risto97/peakrdl-halcpp/issues.
+The best way to send feedback is to file an issue at https://github.com/HEP-SoC/PeakRDL-halcpp/issues.
 
 If you are proposing a new feature:
 

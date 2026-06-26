@@ -9,7 +9,7 @@ You can contribute in many ways:
 
 ## Report Bugs
 
-Report bugs at https://github.com/Risto97/peakrdl-halcpp/issues
+Report bugs at https://github.com/HEP-SoC/peakrdl-halcpp/issues
 
 If you are reporting a bug, please include:
 

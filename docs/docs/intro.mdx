@@ -8,6 +8,9 @@ PeakRDL-halcpp is a free and open-source C++ (HAL) Hardware Abstraction Layer ge
 The tool converts a SystemRDL description into a C++ low level HAL drivers.
 Generated drivers are meant to be used for interfacing the registers in the IP block, usually by a CPU connected to the peripheral through a bus.
 
+PeakRDL-halcpp is released under the [GNU Lesser General Public License v3.0 (LGPLv3)](https://www.gnu.org/licenses/lgpl-3.0.html).
+This means you can freely use, modify, and distribute the tool and its generated output, including in proprietary projects, as long as any modifications to the library itself are shared under the same license.
+
 * Generated drivers are based on C++17 standard
 * The size and performance of the compiled binary is the same as equivalent C drivers
 * Generated drivers preserve the hierarchy of the source SystemRDL description, composing a C++ template class based hierarchy
@@ -50,7 +53,7 @@ The goal is to avoid magical numbers in your code, which can look like this:
 soc.gpio0.CFG0 = 0x123456;
 ```
 
-In previous case `CFG0` is a 24-bit register and pincfg is a 3-bit enum, so the total number of bits in the concatenation will amount to 12, this will cause a compilation error.
+In the previous case `CFG0` is a 24-bit register and pincfg is a 3-bit enum, so the total number of bits in the concatenation will amount to 12, this will cause a compilation error.
 It is by default strongly typed and does not allow width mismatch. To solve this in previous example, it is necessary to pad the list with Const, like this:
 
 ```cpp

@@ -1,6 +1,6 @@
 # Install uv
 FROM python:3.12-slim
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.11.24 /uv /bin/uv
 
 # Change the working directory to the `app` directory
 WORKDIR /app
@@ -18,4 +18,4 @@ COPY . /app
 # Sync the project
 RUN uv sync --frozen
 
-CMD [ "python", "peakrdl_halcpp/foo.py" ]
+CMD [ "peakrdl", "halcpp", "--help" ]

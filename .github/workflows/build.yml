@@ -18,8 +18,8 @@ jobs:
       - uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
-      - run: uv sync --frozen
-      - run: uv run pre-commit run --all-files
+      - run: make install
+      - run: make check
 
   test:
     runs-on: ubuntu-latest
@@ -32,8 +32,8 @@ jobs:
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
-      - run: uv sync --frozen
-      - run: uv run pytest --cov --cov-config=pyproject.toml --cov-report=xml
+      - run: make install
+      - run: make test
       - uses: codecov/codecov-action@v4
         if: matrix.python-version == '3.12'
         with:
@@ -45,7 +45,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
-      - run: uv build
+      - run: make build
       - uses: actions/upload-artifact@v4
         with:
           name: dist

@@ -1,4 +1,5 @@
 from systemrdl import RDLCompiler
+
 from peakrdl_halcpp import HalExporter
 
 rdl_files = ["atxmega_spi.rdl", "regs_and_mem.rdl"]
@@ -13,11 +14,12 @@ for rdl_file in rdl_files:
     top = None
     for top in top_gen:
         top = top
-    assert top is not None
+    if top is None:
+        raise ValueError
 
     exporter = HalExporter()
 
     exporter.export(
-            node=top,
-            outdir="generated",
-            )
+        node=top,
+        outdir="generated",
+    )

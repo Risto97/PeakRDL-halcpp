@@ -3,7 +3,7 @@ from __future__ import annotations
 import itertools
 import logging
 from collections.abc import Iterator
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from systemrdl.node import (
     AddressableNode,
@@ -57,6 +57,7 @@ class HalBaseNode(Node):
 
     # Static variable to retain warning issued
     _type_warning_list: ClassVar[list[str]] = []
+    bus_offset: int = 0
 
     def __iter__(self):
         # Make this class iterable
@@ -70,7 +71,7 @@ class HalBaseNode(Node):
     @property
     def orig_type_name_hal(self) -> str:
         """Return the original type name with the '_hal' suffix."""
-        return super().orig_type_name.lower() + "_hal"
+        return self.orig_type_name.lower() + "_hal"
 
     @property
     def orig_type_name(self) -> str:
@@ -78,10 +79,12 @@ class HalBaseNode(Node):
 
         Node instantiate anonymously do not have orig_type_name so use type_name.
         """
-        if super().orig_type_name is not None:
-            return super().orig_type_name
-        else:
-            return super().type_name
+        name = super().orig_type_name
+        if name is not None:
+            return name
+        name = super().type_name
+        assert name is not None
+        return name
 
     @property
     def is_bus(self) -> bool:
@@ -108,7 +111,7 @@ class HalBaseNode(Node):
         return f"/*\n{lines}\n */"
 
     @staticmethod
-    def _halfactory(inst: Node, env: RDLEnvironment, parent: Node | None = None) -> Node | None:
+    def _halfactory(inst: Node, env: RDLEnvironment, parent: Node | None = None) -> HalBaseNode | None:
         """Factory method that wraps a systemrdl Node in its corresponding HAL subclass.
 
         Adapted from the systemrdl Node factory. Returns ``None`` for unsupported
@@ -145,7 +148,7 @@ class HalBaseNode(Node):
             halnode_logger.error(f"inst type {type(inst)} is not recognized")
             raise TypeError
 
-    def halunrolled(self) -> Iterator[Node]:
+    def halunrolled(self) -> Iterator[HalBaseNode]:
         """Yields one HAL node per array element, or yields the node itself if not an array.
 
         Adapted from the systemrdl Node unrolling logic. For array nodes, each yielded
@@ -154,10 +157,13 @@ class HalBaseNode(Node):
         cls = type(self)
         if isinstance(self, AddressableNode) and self.is_array:  # pylint: disable=no-member
             # Is an array. Yield a Node object for each instance
-            range_list = [range(n) for n in self.array_dimensions]  # pylint: disable=no-member
+            array_dims = self.array_dimensions  # pylint: disable=no-member
+            assert array_dims is not None
+            range_list = [range(n) for n in array_dims]
             for idxs in itertools.product(*range_list):
-                N = cls(self)
-                N.current_idx = idxs
+                N = cls(self.inst, self.env, self.parent)
+                assert isinstance(N, AddressableNode)
+                N.current_idx = list(idxs)
                 yield N
         else:
             # Not an array. Nothing to unroll
@@ -165,14 +171,14 @@ class HalBaseNode(Node):
 
     def halchildren(
         self,
-        children_type: Node = Node,
+        children_type: type[Node] = Node,
         unroll: bool = False,
         skip_not_present: bool = True,
         skip_buses: bool = False,
         bus_offset: int = 0,
         unique_orig_type: bool = False,
         type_dict: dict | None = None,
-    ) -> Iterator[Node]:
+    ) -> Iterator[HalBaseNode]:
         """Yields HAL-wrapped children of this node, with optional filtering.
 
         Wraps systemrdl ``Node.children`` so that each child is converted to the
@@ -204,10 +210,12 @@ class HalBaseNode(Node):
 
         for child in self.children(unroll, skip_not_present):
             halchild = HalBaseNode._halfactory(child, self.env, self)
+            if halchild is None:
+                continue
             if isinstance(halchild, children_type):
                 child_bus_offset = 0
                 if skip_buses and halchild.is_bus:
-                    child_bus_offset = bus_offset + halchild.address_offset
+                    child_bus_offset = bus_offset + cast(AddressableNode, halchild).address_offset
                     yield from halchild.halchildren(
                         children_type,
                         unroll,
@@ -244,7 +252,7 @@ class HalBaseNode(Node):
 
     def haldescendants(
         self,
-        descendants_type: Node = Node,
+        descendants_type: type[Node] = Node,
         unroll: bool = False,
         skip_not_present: bool = True,
         in_post_order: bool = False,
@@ -252,7 +260,7 @@ class HalBaseNode(Node):
         bus_offset: int = 0,
         unique_orig_type: bool = False,
         type_dict: dict | None = None,
-    ) -> Iterator[Node]:
+    ) -> Iterator[HalBaseNode]:
         """Yields all HAL-wrapped descendants of this node, with optional filtering.
 
         Adapted from systemrdl ``Node.descendants``. Recursively calls
@@ -288,7 +296,7 @@ class HalBaseNode(Node):
             if isinstance(child, descendants_type):
                 child_bus_offset = 0
                 if skip_buses and self.is_bus:
-                    child_bus_offset = bus_offset + child.address_offset
+                    child_bus_offset = bus_offset + cast(AddressableNode, child).address_offset
 
                 if in_post_order:
                     yield from child.haldescendants(
@@ -418,14 +426,14 @@ class HalRegNode(HalBaseNode, RegNode):
         element is used.
         """
         if self.is_array and self.current_idx is None:
-            return self.bus_offset + next(self.halunrolled()).address_offset
+            return self.bus_offset + cast(AddressableNode, next(self.halunrolled())).address_offset
         else:
             return self.bus_offset + super().address_offset
 
     @property
     def width(self) -> int:
         """Returns the register width in bits, derived from the highest bit position of its fields."""
-        return max([c.high for c in self.halchildren(HalFieldNode)]) + 1
+        return max([cast(HalFieldNode, c).high for c in self.halchildren(HalFieldNode)]) + 1
 
     def get_template_line(self) -> str:
         """Returns the class template string."""
@@ -473,7 +481,7 @@ class HalRegfileNode(HalBaseNode, RegfileNode):
         first element is used.
         """
         if self.is_array and self.current_idx is None:
-            return self.bus_offset + next(self.halunrolled()).address_offset
+            return self.bus_offset + cast(AddressableNode, next(self.halunrolled())).address_offset
         else:
             return self.bus_offset + super().address_offset
 

@@ -1,4 +1,5 @@
 from systemrdl import RDLCompiler
+from systemrdl.node import AddrmapNode
 
 from peakrdl_halcpp import HalExporter
 
@@ -16,6 +17,7 @@ for rdl_file in rdl_files:
         top = top
     if top is None:
         raise ValueError
+    assert isinstance(top, AddrmapNode)
 
     exporter = HalExporter()
 

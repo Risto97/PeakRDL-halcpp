@@ -12,7 +12,9 @@ repos:
         exclude: ^.devcontainer/devcontainer.json
         args: [--autofix, --no-sort-keys]
       - id: end-of-file-fixer
+        exclude: '^.*\.svg$'
       - id: trailing-whitespace
+        exclude: '^.*\.svg$'
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: "v0.15.7"

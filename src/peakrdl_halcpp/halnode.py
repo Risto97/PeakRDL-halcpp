@@ -82,9 +82,12 @@ class HalBaseNode(Node):
         name = super().orig_type_name
         if name is not None:
             return name
-        name = super().type_name
-        assert name is not None
-        return name
+        return cast(str, super().type_name)
+
+    @property
+    def address_offset(self) -> int:
+        """Returns the node's address offset. Overridden in all concrete subclasses."""
+        raise NotImplementedError
 
     @property
     def is_bus(self) -> bool:
@@ -157,13 +160,11 @@ class HalBaseNode(Node):
         cls = type(self)
         if isinstance(self, AddressableNode) and self.is_array:  # pylint: disable=no-member
             # Is an array. Yield a Node object for each instance
-            array_dims = self.array_dimensions  # pylint: disable=no-member
-            assert array_dims is not None
+            array_dims = cast(list[int], self.array_dimensions)  # pylint: disable=no-member
             range_list = [range(n) for n in array_dims]
             for idxs in itertools.product(*range_list):
                 N = cls(self.inst, self.env, self.parent)
-                assert isinstance(N, AddressableNode)
-                N.current_idx = list(idxs)
+                cast(AddressableNode, N).current_idx = list(idxs)
                 yield N
         else:
             # Not an array. Nothing to unroll
@@ -215,7 +216,7 @@ class HalBaseNode(Node):
             if isinstance(halchild, children_type):
                 child_bus_offset = 0
                 if skip_buses and halchild.is_bus:
-                    child_bus_offset = bus_offset + cast(AddressableNode, halchild).address_offset
+                    child_bus_offset = bus_offset + halchild.address_offset
                     yield from halchild.halchildren(
                         children_type,
                         unroll,
@@ -296,7 +297,7 @@ class HalBaseNode(Node):
             if isinstance(child, descendants_type):
                 child_bus_offset = 0
                 if skip_buses and self.is_bus:
-                    child_bus_offset = bus_offset + cast(AddressableNode, child).address_offset
+                    child_bus_offset = bus_offset + child.address_offset
 
                 if in_post_order:
                     yield from child.haldescendants(
@@ -426,14 +427,14 @@ class HalRegNode(HalBaseNode, RegNode):
         element is used.
         """
         if self.is_array and self.current_idx is None:
-            return self.bus_offset + cast(AddressableNode, next(self.halunrolled())).address_offset
+            return self.bus_offset + next(self.halunrolled()).address_offset
         else:
             return self.bus_offset + super().address_offset
 
     @property
     def width(self) -> int:
         """Returns the register width in bits, derived from the highest bit position of its fields."""
-        return max([cast(HalFieldNode, c).high for c in self.halchildren(HalFieldNode)]) + 1
+        return max(c.high for c in self.halchildren(HalFieldNode) if isinstance(c, HalFieldNode)) + 1
 
     def get_template_line(self) -> str:
         """Returns the class template string."""
@@ -481,7 +482,7 @@ class HalRegfileNode(HalBaseNode, RegfileNode):
         first element is used.
         """
         if self.is_array and self.current_idx is None:
-            return self.bus_offset + cast(AddressableNode, next(self.halunrolled())).address_offset
+            return self.bus_offset + next(self.halunrolled()).address_offset
         else:
             return self.bus_offset + super().address_offset
 

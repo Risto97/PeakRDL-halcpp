@@ -10,14 +10,13 @@ for rdl_file in rdl_files:
     rdlc.compile_file(rdl_file)
 
     root = rdlc.elaborate()
-    top_gen = root.children(unroll=True)
 
-    top = None
-    for top in top_gen:
-        top = top
+    top: AddrmapNode | None = None
+    for child in root.children(unroll=True):
+        if isinstance(child, AddrmapNode):
+            top = child
     if top is None:
         raise ValueError
-    assert isinstance(top, AddrmapNode)
 
     exporter = HalExporter()
 
